@@ -1,0 +1,13 @@
+# Normalise to LF in the repo, whatever the working copy uses. Without this,
+# developing on Windows rewrites every file's line endings and the first diff on
+# a Mac or in CI is the whole codebase.
+* text=auto eol=lf
+
+# Binary — never touch.
+*.png binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+
+# Generated; keep it out of diffs and language stats.
+pnpm-lock.yaml linguist-generated=true -diff

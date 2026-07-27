@@ -1,0 +1,74 @@
+@import "../styles/tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 1rem; /* 16px floor on mobile (DESIGN.md §3) */
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Visible focus, always in ink, never removed (DESIGN.md §8). */
+  :focus-visible {
+    outline: var(--stroke-hair) solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  /* Every number is mono — that's the journal-page feel (DESIGN.md §3). */
+  time,
+  [data-numeric] {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading);
+    line-height: 1.2;
+  }
+}
+
+@layer components {
+  /**
+   * The dot-grid paper substrate (DESIGN.md §4). On the page background, and on
+   * any region that should read as bare paper. Oat cards sit opaquely on top —
+   * the dots do not show through them.
+   */
+  .dot-grid {
+    background-color: var(--paper);
+    background-image: radial-gradient(var(--dot) var(--dot-size), transparent 0);
+    background-size: var(--dot-gap) var(--dot-gap);
+    /* Anchor the pattern to the top-left so content lands on the grid. */
+    background-position: 0 0;
+  }
+}
+
+@layer utilities {
+  /* Pixel art must not be smoothed (DESIGN.md §7). */
+  .pixelated {
+    shape-rendering: crispEdges;
+    image-rendering: pixelated;
+  }
+}
+
+/* Ink appears; it does not bounce. Honour the OS preference anyway. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

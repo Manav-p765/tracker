@@ -1,0 +1,16 @@
+{
+  // The service worker runs in a WebWorker scope, so it cannot share the app's
+  // DOM lib without duplicate-global conflicts. Kept as its own project and
+  // typechecked separately (see the `typecheck` script).
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["WebWorker", "ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "types": []
+  },
+  "include": ["app/sw.ts"]
+}

@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+    "outDir": "dist",
+    "rootDir": "src",
+    "resolveJsonModule": true,
+    // This is an application, not a library: nothing consumes its types, and
+    // emitting declarations would force annotations on every Express handler
+    // just to satisfy pnpm's non-hoisted @types paths.
+    "declaration": false,
+    "declarationMap": false
+  },
+  "include": ["src/**/*.ts"]
+}

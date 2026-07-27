@@ -1,0 +1,109 @@
+/* =============================================================================
+ * tokens.css — the ONLY file in the app allowed to contain a hex value.
+ * Verbatim from DESIGN.md §2. Components consume tokens via Tailwind classes
+ * (bg-paper, text-ink, border-rule) or var(--token); never a literal colour.
+ *
+ * Day paper is the default. Night paper follows the OS, and an explicit
+ * data-theme on <html> beats the OS in BOTH directions (DESIGN.md §2).
+ *
+ * Known, deliberate exception: app/manifest.ts repeats --paper as a literal,
+ * because the Web App Manifest is JSON and cannot read CSS custom properties.
+ * ========================================================================== */
+
+:root {
+  /* paper */
+  --paper: #f0ede3; /* page background — bone/cream */
+  --card: #e4dfd2; /* cards, folder tabs, sunken cells — soft oat */
+  --dot: #d6d0c0; /* dot-grid dot */
+  --rule: #dcd6c7; /* hairline rule */
+
+  /* ink */
+  --ink: #33302a; /* primary text, X marks, chart axis */
+  --ink-muted: #6b6659; /* labels, mono file tags, axis ticks */
+
+  /* accent pastels — dusty, desaturated, coordinated. No primary. */
+  --sage: #a3b18a;
+  --clay: #d9a08c; /* muted coral */
+  --powder: #9db4c0; /* powder blue */
+  --ochre: #e0c79a; /* buttercream */
+  --lilac: #b3a6c4; /* dusty lilac */
+
+  /* pastel washes — same hues at low opacity, for fills and heatmap steps */
+  --sage-wash: #a3b18a26;
+  --clay-wash: #d9a08c26;
+  --powder-wash: #9db4c026;
+  --ochre-wash: #e0c79a26;
+  --lilac-wash: #b3a6c426;
+
+  /* geometry */
+  --dot-gap: 16px; /* dot-grid pitch — the app's base rhythm unit */
+  --dot-size: 1px;
+  --stroke-hair: 1px;
+  --stroke-ink: 1.75px;
+  --radius: 3px; /* paper barely rounds */
+  --radius-tab: 6px 6px 0 0;
+
+  /* type — the families are injected by next/font in app/layout.tsx */
+  --font-heading: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-space-mono), ui-monospace, "SFMono-Regular", monospace;
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* layout */
+  --content-max: 720px; /* single column; no multi-column dashboards */
+
+  color-scheme: light;
+}
+
+/* -----------------------------------------------------------------------------
+ * Night paper — a warm charcoal sheet, never blue-black, never pure #000.
+ * Same hues; pastels get a small luminance lift to hold on the dark ground.
+ * -------------------------------------------------------------------------- */
+
+/* The OS asks for dark, and the user has not explicitly chosen day paper. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1e1c18;
+    --card: #282520;
+    --dot: #3a362f;
+    --rule: #383430;
+    --ink: #e8e4d9;
+    --ink-muted: #9a9486;
+    --sage: #b2c09a;
+    --clay: #e2ae9b;
+    --powder: #aac0cc;
+    --ochre: #e8d2aa;
+    --lilac: #c0b4d0;
+
+    /* washes go to 0x33 alpha in dark for equivalent presence */
+    --sage-wash: #b2c09a33;
+    --clay-wash: #e2ae9b33;
+    --powder-wash: #aac0cc33;
+    --ochre-wash: #e8d2aa33;
+    --lilac-wash: #c0b4d033;
+
+    color-scheme: dark;
+  }
+}
+
+/* The user explicitly chose night paper — wins over an OS that says light. */
+:root[data-theme="dark"] {
+  --paper: #1e1c18;
+  --card: #282520;
+  --dot: #3a362f;
+  --rule: #383430;
+  --ink: #e8e4d9;
+  --ink-muted: #9a9486;
+  --sage: #b2c09a;
+  --clay: #e2ae9b;
+  --powder: #aac0cc;
+  --ochre: #e8d2aa;
+  --lilac: #c0b4d0;
+
+  --sage-wash: #b2c09a33;
+  --clay-wash: #e2ae9b33;
+  --powder-wash: #aac0cc33;
+  --ochre-wash: #e8d2aa33;
+  --lilac-wash: #c0b4d033;
+
+  color-scheme: dark;
+}
