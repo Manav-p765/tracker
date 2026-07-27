@@ -94,6 +94,20 @@ export interface GoalWithRollup extends Goal {
   rollup: GoalRollup;
   /** Derived: status === "active" && dueDate < today(user timezone). */
   isOverdue: boolean;
+  /**
+   * The date the goal is actually judged against. Equals `dueDate` when set; for
+   * a daily goal without one it is the day the goal was created, since a daily
+   * goal is for its own day (SCOPE.md §2).
+   */
+  effectiveDueDate: DayKey | null;
+}
+
+/** GET /goals/:id — the goal, its ancestry, and its immediate children. */
+export interface GoalDetail extends GoalWithRollup {
+  /** Nearest parent first, walking up to the root. Empty for a top-level goal. */
+  parentChain: Goal[];
+  /** Immediate children only — the rollup shows one level deep. */
+  children: GoalWithRollup[];
 }
 
 // ---------------------------------------------------------------------------

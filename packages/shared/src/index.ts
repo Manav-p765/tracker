@@ -14,3 +14,4 @@ export * from "./constants/socket-events.js";
 export * from "./constants/queues.js";
 export * from "./schemas/common.js";
 export * from "./schemas/auth.js";
+export * from "./schemas/goal.js";
