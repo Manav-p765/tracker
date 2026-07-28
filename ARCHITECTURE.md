@@ -370,7 +370,7 @@ apps/web/
 │   └── (app)/
 │       ├── page.tsx            # Today — pixel vignette header, intention, habit row, goals
 │       ├── checkin/            # morning + evening ritual
-│       ├── goals/[horizon]/    # + goals/[id]
+│       ├── goals/[horizon]/    # + goals/[horizon]/[id] for detail
 │       ├── habits/
 │       ├── history/            # multicolor vitals chart, heatmap, moments
 │       ├── projects/           # v2 — folder tabs

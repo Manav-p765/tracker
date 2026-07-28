@@ -156,7 +156,7 @@ Verify with real requests against a running API, then stop.
 ---
 
 ### Prompt 1.2 — Goals UI
-
+i
 ```
 Read SCOPE.md, ARCHITECTURE.md, and DESIGN.md first. Prompts 0.1–1.1 are done; the goals API is
 live. Build Prompt 1.2: the goals UI — phone-first, one-handed, in the editorial-archival paper

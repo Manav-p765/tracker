@@ -1,19 +1,27 @@
-import { HORIZONS, type Horizon } from "@tracker/shared";
 import { notFound } from "next/navigation";
 
-import { RouteStub } from "@/components/ui/RouteStub";
+import { HORIZONS, isHorizon } from "@/components/goals/horizon-meta";
+import { GoalsHorizonView } from "./GoalsHorizonView";
 
-const TITLES: Record<Horizon, string> = {
-  daily: "Daily goals",
-  weekly: "Weekly goals",
-  monthly: "Monthly goals",
-  yearly: "Yearly goals",
-  longterm: "Long-term goals",
-};
+/**
+ * The five horizons are a closed set, so enumerate them and let the router reject
+ * anything else.
+ *
+ * This is not just tidiness. Once the root layout's client providers flush the
+ * response shell, a `notFound()` thrown here can no longer change the status code —
+ * the 404 page renders inside a 200. Declaring the valid params moves the rejection
+ * ahead of rendering, so /goals/nonsense is a real 404.
+ */
+export const dynamicParams = false;
 
-const isHorizon = (value: string): value is Horizon =>
-  (HORIZONS as readonly string[]).includes(value);
+export function generateStaticParams(): { horizon: string }[] {
+  return HORIZONS.map((horizon) => ({ horizon }));
+}
 
+/**
+ * Server component: validates the segment, then hands off to the client view that
+ * owns the query cache and the sheet.
+ */
 export default async function GoalsHorizonPage({
   params,
 }: {
@@ -22,12 +30,5 @@ export default async function GoalsHorizonPage({
   const { horizon } = await params;
   if (!isHorizon(horizon)) notFound();
 
-  return (
-    <RouteStub
-      tag={horizon === "longterm" ? "LONG TERM" : horizon.toUpperCase()}
-      title={TITLES[horizon]}
-      builtBy="Prompt 1.2"
-      note="Horizon tabs, active / done / overdue, checkoff, and the parent rollup."
-    />
-  );
+  return <GoalsHorizonView horizon={horizon} />;
 }

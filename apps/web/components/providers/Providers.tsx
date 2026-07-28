@@ -3,6 +3,7 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
 
+import { useGoalSocketSync } from "@/lib/goal-socket";
 import { createQueryClient } from "@/lib/query";
 import { SessionProvider, useSession } from "@/lib/session";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
@@ -32,18 +33,24 @@ export function Providers({ children }: { children: ReactNode }) {
  * Holds the socket open for as long as there is a session, and drops it on sign
  * out so a stale connection cannot keep receiving another account's events.
  *
- * Prompt 1.2 onwards adds the cache-patching listeners here.
+ * The per-feature cache listeners hang off this too, one hook each:
+ *   goals    → Prompt 1.2
+ *   habits   → Prompt 1.3
+ *   checkins → Prompt 1.4
  */
 function SocketBridge({ children }: { children: ReactNode }) {
   const { status } = useSession();
+  const authenticated = status === "authenticated";
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!authenticated) return;
     connectSocket();
     return () => {
       disconnectSocket();
     };
-  }, [status]);
+  }, [authenticated]);
+
+  useGoalSocketSync(authenticated);
 
   return <>{children}</>;
 }

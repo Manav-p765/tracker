@@ -1,4 +1,4 @@
-import type { Horizon } from "@tracker/shared";
+import type { GoalWithRollup, Horizon } from "@tracker/shared";
 import { Types } from "mongoose";
 import { beforeEach, describe, expect, it } from "vitest";
 
@@ -38,6 +38,31 @@ beforeEach(async () => {
 
 const add = (horizon: Horizon, extra: Record<string, unknown> = {}, owner = userId) =>
   createGoal(owner, { title: `${horizon} goal`, horizon, ...extra } as never, EVENING_UTC);
+
+/**
+ * Same as `add`, but pins `createdAt` instead of letting Mongoose stamp the wall
+ * clock.
+ *
+ * A daily goal's implicit due date is derived from createdAt, so any test that
+ * asserts on it and only injects `now` is a time bomb: it passes on the day it was
+ * written and fails the next morning. Both halves of the comparison have to be
+ * fixed, not just one.
+ */
+async function addAt(
+  horizon: Horizon,
+  createdAt: Date,
+  extra: Record<string, unknown> = {},
+  owner = userId,
+): Promise<GoalWithRollup> {
+  const goal = await add(horizon, extra, owner);
+  // Mongoose marks a `timestamps: true` createdAt immutable, so $set through the
+  // model is silently dropped. The raw driver is the only way to backdate it.
+  await Goal.collection.updateOne(
+    { _id: new Types.ObjectId(goal._id) },
+    { $set: { createdAt } },
+  );
+  return { ...goal, createdAt: createdAt.toISOString() };
+}
 
 describe("horizon ordering", () => {
   it("accepts a parent one step higher", async () => {
@@ -313,15 +338,15 @@ describe("derived status and overdue", () => {
   });
 
   it("gives a daily goal an implicit due date of its own day", async () => {
-    const daily = await add("daily");
-    const detail = await getGoalDetail(userId, daily._id, EVENING_UTC);
     // Created at 18:30 UTC, which is already the 27th in Asia/Kolkata.
+    const daily = await addAt("daily", EVENING_UTC);
+    const detail = await getGoalDetail(userId, daily._id, EVENING_UTC);
     expect(detail.effectiveDueDate).toBe(TODAY_IST);
     expect(detail.isOverdue).toBe(false);
   });
 
   it("marks yesterday's unfinished daily goal overdue today", async () => {
-    const daily = await add("daily");
+    const daily = await addAt("daily", EVENING_UTC);
     // A day later in the same zone.
     const tomorrow = new Date("2026-07-27T18:30:00.000Z");
     const detail = await getGoalDetail(userId, daily._id, tomorrow);
@@ -413,7 +438,7 @@ describe("listing", () => {
 
 describe("today's goals", () => {
   it("includes today's daily goals and anything else due today", async () => {
-    const daily = await add("daily");
+    const daily = await addAt("daily", EVENING_UTC);
     const dueToday = await add("monthly", { dueDate: TODAY_IST });
     await add("monthly", { dueDate: "2026-12-31" });
 
@@ -431,7 +456,7 @@ describe("today's goals", () => {
   });
 
   it("carries over an unfinished daily goal from an earlier day", async () => {
-    await add("daily");
+    await addAt("daily", EVENING_UTC);
     const tomorrow = new Date("2026-07-27T18:30:00.000Z");
     const todays = await listTodayGoals(userId, tomorrow);
     expect(todays).toHaveLength(1);
