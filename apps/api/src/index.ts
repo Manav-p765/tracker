@@ -12,7 +12,7 @@ import { connectToDatabase, disconnectFromDatabase } from "./db.js";
 import { env } from "./env.js";
 import { logger } from "./logger.js";
 // Registers all ten schemas before the first query.
-import "./models/index.js";
+import "@tracker/db";
 import { closeSocketServer, createSocketServer } from "./realtime/socket.js";
 import { initSentry } from "./sentry.js";
 

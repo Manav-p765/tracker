@@ -24,6 +24,8 @@ export const JOB_NAMES = {
   SCAN_GOAL_REMINDERS: "scan-goal-reminders",
   /** reminders — repeatable, daily. v2. */
   SCAN_EVENT_REMINDERS: "scan-event-reminders",
+  /** reminders — repeatable. Late-day streak nudge. */
+  SCAN_STREAK_REMINDERS: "scan-streak-reminders",
   /** push — on demand. */
   SEND_PUSH: "send-push",
   /** maintenance — repeatable, daily. v2. */
@@ -35,7 +37,7 @@ export const JOB_NAMES = {
 export type JobName = (typeof JOB_NAMES)[keyof typeof JOB_NAMES];
 
 /** The three kinds of reminder a push can be (SCOPE.md §4.6). */
-export const REMINDER_KINDS = ["checkin", "goal", "event"] as const;
+export const REMINDER_KINDS = ["checkin", "goal", "streak", "event"] as const;
 export type ReminderKind = (typeof REMINDER_KINDS)[number];
 
 /**
@@ -51,7 +53,10 @@ export const notificationTag = (kind: ReminderKind): string => `tracker:${kind}`
 export const jobIds = {
   checkinReminder: (userId: Id, date: DayKey): string => `checkin-reminder:${userId}:${date}`,
   goalReminder: (goalId: Id, date: DayKey): string => `goal-reminder:${goalId}:${date}`,
+  /** Two or more goals due the same day collapse into one per-user digest. */
+  goalDigest: (userId: Id, date: DayKey): string => `goal-digest:${userId}:${date}`,
   eventReminder: (eventId: Id, date: DayKey): string => `event-reminder:${eventId}:${date}`,
+  streakReminder: (userId: Id, date: DayKey): string => `streak-risk:${userId}:${date}`,
   processResource: (resourceId: Id): string => `process-resource:${resourceId}`,
 } as const;
 

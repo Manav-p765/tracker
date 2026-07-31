@@ -28,7 +28,7 @@ import {
 import { Types } from "mongoose";
 
 import { AppError, ERROR_CODES } from "../errors.js";
-import { Checkin, type CheckinDoc } from "../models/index.js";
+import { Checkin, type CheckinDoc } from "@tracker/db";
 import { emitToUser } from "../realtime/socket.js";
 import { setGoalCompleted } from "./goal.service.js";
 import { getUserTimezone } from "./user-context.service.js";

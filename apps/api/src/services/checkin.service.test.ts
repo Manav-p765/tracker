@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { Checkin, Goal, User } from "../models/index.js";
+import { Checkin, Goal, User } from "@tracker/db";
 import { hashPassword } from "./auth.service.js";
 import { getCheckin, listCheckins, upsertCheckin } from "./checkin.service.js";
 import { createGoal } from "./goal.service.js";

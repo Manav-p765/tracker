@@ -2,7 +2,7 @@ import type { GoalWithRollup, Horizon } from "@tracker/shared";
 import { Types } from "mongoose";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { Goal, User } from "../models/index.js";
+import { Goal, User } from "@tracker/db";
 import { hashPassword } from "./auth.service.js";
 import {
   createGoal,

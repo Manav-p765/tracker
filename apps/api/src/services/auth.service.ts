@@ -10,7 +10,7 @@ import { hash as argonHash, verify as argonVerify } from "@node-rs/argon2";
 import type { RegisterInput, UpdateMeInput, User as UserDto } from "@tracker/shared";
 
 import { AppError, ERROR_CODES } from "../errors.js";
-import { User, type UserDoc } from "../models/index.js";
+import { User, type UserDoc } from "@tracker/db";
 
 /**
  * argon2id, tuned for an interactive login on modest hardware: 19 MiB, 2 passes,
@@ -47,6 +47,7 @@ export function toUserDto(user: Pick<UserDoc, keyof UserDoc>): UserDto {
     remindCheckin: user.remindCheckin,
     remindGoals: user.remindGoals,
     remindEvents: user.remindEvents,
+    remindStreak: user.remindStreak,
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
   };

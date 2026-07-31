@@ -37,7 +37,8 @@ tracker/
 │   ├── api/                  # Express + Socket.IO
 │   └── worker/               # BullMQ worker process
 ├── packages/
-│   └── shared/               # TS types, Zod schemas, day-key utils, constants
+│   ├── shared/               # TS types, Zod schemas, day-key utils, constants
+│   └── db/                   # Mongoose models — the schema, in exactly one place
 ├── SCOPE.md  ARCHITECTURE.md  DESIGN.md  BUILD_PROMPTS.md
 ├── pnpm-workspace.yaml
 ├── turbo.json
@@ -52,7 +53,13 @@ tracker/
 - day-key helpers: `toDayKey(date, tz)`, `parseDayKey`, `monthRange(yyyyMm)`, `addDays`
 - shared derivation logic used by both api and worker: goal status, rollup math, streaks
 
-Rule: **no app imports from another app.** `web` never imports from `api`.
+`packages/db` holds the Mongoose models. It exists because **both** `api` and `worker` need the
+schemas, and the rule below forbids the worker reaching into the API's source. It depends on
+`shared` (for the enums the schemas validate against) and is never imported by `web` — Mongoose has
+no business in a browser bundle.
+
+Rule: **no app imports from another app.** `web` never imports from `api`; `worker` never imports
+from `api`. Anything two apps need goes in a package.
 
 ---
 
@@ -338,14 +345,36 @@ the error envelope with only 5xx reported to Sentry, and `GET /healthz`.
 Redis is shared by `api` (producer) and `worker` (consumer). Queue names live in
 `packages/shared`.
 
+**One repeatable sweep, not a cron per user.** A single job on the `reminders` queue runs every
+`SCAN_INTERVAL_MINUTES` (default 5) and asks each scanner what is due *right now, in each user's own
+zone*. Per-user schedules would mean N crons to create, update and tear down every time a setting
+changed; the sweep has no state to drift.
+
+| Scanner | Local slot | Window | Fires when | jobId |
+|---|---|---|---|---|
+| check-in | user's `reminderTime` | 15 min | today's check-in `completed` is false | `checkin-reminder:{userId}:{day}` |
+| goal due (1) | `09:00` local | 30 min | exactly one `active` goal has `dueDate` == today | `goal-reminder:{goalId}:{day}` |
+| goal due (2+) | `09:00` local | 30 min | two or more — one digest replaces them | `goal-digest:{userId}:{day}` |
+| streak at risk | `22:00` local | 30 min | check-in unfinished **and** a run ≥ 2 days | `streak-risk:{userId}:{day}` |
+| events *(3.3)* | — | — | inert scaffold; returns nothing until events exist | `event-reminder:{eventId}:{day}` |
+
 | Queue | Job | Schedule | Does |
 |---|---|---|---|
-| `reminders` | `scan-checkin-reminders` | repeatable, every 5 min | Users whose **local** time matches `reminderTime` (± window) and whose today's `eveningLoggedAt` is unset → enqueue `send-push` |
-| `reminders` | `scan-goal-reminders` | repeatable, daily 08:00 UTC | Active goals with `dueDate` == today (user-local) → `send-push` |
-| `reminders` | `scan-event-reminders` *(v2)* | repeatable, daily 08:00 UTC | Events where `date − reminderLeadDays` == today → `send-push` |
+| `reminders` | `scan-checkin-reminders` | repeatable, every 5 min | Runs **all** scanners; enqueues `send-push` per hit |
 | `push` | `send-push` | on demand | `web-push` to every subscription of the user; prunes 404/410 |
 | `maintenance` | `roll-recurring-events` *(v2)* | repeatable, daily 00:30 UTC | Advances past-dated recurring events to their next occurrence |
 | `vault` *(v2)* | `process-resource` | on demand | Best-effort URL fetch → LLM extraction → fills `summary`, `links`, `tags` → `processingStatus` |
+
+Every scanner is a **pure read that returns jobs** — it never touches Redis. That is what makes the
+timezone and idempotency rules testable without any queue infrastructure, which matters because they
+are the two things most likely to be wrong.
+
+**Midnight wrap.** A reminder's `day` is the day the *slot* belongs to, not the day the scan ran. A
+23:58 reminder swept at 00:01 is still yesterday's — otherwise the jobId would change at midnight and
+the user would be notified twice for one reminder.
+
+**No empty pushes.** Scanners only consider users who have at least one stored subscription and the
+relevant toggle on, so a job is never enqueued that would deliver nothing.
 
 Defaults on every job: `attempts: 5`, `backoff: { type: 'exponential', delay: 5000 }`,
 `removeOnComplete: { count: 100 }`, `removeOnFail: { count: 500 }`.

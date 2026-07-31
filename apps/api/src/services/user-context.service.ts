@@ -10,7 +10,7 @@
 import { todayKey, type DayKey } from "@tracker/shared";
 
 import { AppError } from "../errors.js";
-import { User } from "../models/index.js";
+import { User } from "@tracker/db";
 
 export async function getUserTimezone(userId: string): Promise<string> {
   const user = await User.findById(userId).select("timezone").lean();

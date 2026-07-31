@@ -22,7 +22,7 @@ import {
 } from "@tracker/shared";
 import { Types } from "mongoose";
 
-import { Checkin, Goal, Habit, HabitLog } from "../models/index.js";
+import { Checkin, Goal, Habit, HabitLog } from "@tracker/db";
 import { getUserTimezone } from "./user-context.service.js";
 
 export type HistorySeriesKey = "habits" | "sleep" | "tasks" | "mood" | "energy";

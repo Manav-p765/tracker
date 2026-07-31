@@ -11,7 +11,7 @@
 
 import { connectToDatabase, disconnectFromDatabase, syncIndexes } from "../db.js";
 import { logger } from "../logger.js";
-import { User } from "../models/index.js";
+import { User } from "@tracker/db";
 import { hashPassword } from "../services/auth.service.js";
 
 const email = (process.env.SEED_EMAIL ?? "me@tracker.local").trim().toLowerCase();

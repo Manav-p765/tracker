@@ -15,7 +15,7 @@ import type { PushSubscriptionInput } from "@tracker/shared";
 import { Types } from "mongoose";
 
 import { AppError } from "../errors.js";
-import { PushSubscription } from "../models/index.js";
+import { PushSubscription } from "@tracker/db";
 
 export interface StoredSubscription {
   endpoint: string;

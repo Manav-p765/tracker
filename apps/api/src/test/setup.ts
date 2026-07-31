@@ -9,7 +9,7 @@ import mongoose from "mongoose";
 
 import { connectToDatabase, disconnectFromDatabase, syncIndexes } from "../db.js";
 // Registers all ten schemas.
-import "../models/index.js";
+import "@tracker/db";
 
 beforeAll(async () => {
   const uri = process.env.MONGODB_URI;

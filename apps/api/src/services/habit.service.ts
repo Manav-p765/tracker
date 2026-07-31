@@ -29,7 +29,7 @@ import {
 import { Types } from "mongoose";
 
 import { AppError, ERROR_CODES } from "../errors.js";
-import { Habit, HabitLog, type HabitDoc } from "../models/index.js";
+import { Habit, HabitLog, type HabitDoc } from "@tracker/db";
 import { emitToUser } from "../realtime/socket.js";
 import { getUserTimezone } from "./user-context.service.js";
 

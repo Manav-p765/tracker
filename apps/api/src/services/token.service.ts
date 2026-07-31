@@ -24,7 +24,7 @@ import type { Types } from "mongoose";
 
 import { env } from "../env.js";
 import { AppError, ERROR_CODES } from "../errors.js";
-import { User } from "../models/index.js";
+import { User } from "@tracker/db";
 
 export interface AccessTokenClaims {
   sub: string;

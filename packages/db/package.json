@@ -1,0 +1,30 @@
+{
+  "name": "@tracker/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Mongoose models. Shared by apps/api and apps/worker — the schema lives in exactly one place.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rimraf dist .turbo *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@tracker/shared": "workspace:*",
+    "mongoose": "^8.9.5"
+  },
+  "devDependencies": {
+    "rimraf": "^6.0.1",
+    "typescript": "^5.7.3"
+  }
+}

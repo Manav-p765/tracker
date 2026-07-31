@@ -5,6 +5,7 @@ import { FileTag } from "@/components/paper/FileTag";
 import { HairlineRule } from "@/components/paper/HairlineRule";
 import { SerifHeading } from "@/components/paper/SerifHeading";
 import { NotificationSetup } from "@/components/push/NotificationSetup";
+import { ReminderSettings } from "@/components/push/ReminderSettings";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 /**
@@ -49,6 +50,8 @@ export default function SettingsPage() {
       <section className="space-y-unit">
         <SerifHeading level={3}>Reminders</SerifHeading>
         <NotificationSetup />
+        <HairlineRule />
+        <ReminderSettings />
       </section>
 
       <HairlineRule />

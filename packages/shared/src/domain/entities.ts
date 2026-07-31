@@ -55,6 +55,7 @@ export interface User extends Timestamped {
   remindCheckin: boolean;
   remindGoals: boolean;
   remindEvents: boolean;
+  remindStreak: boolean;
 }
 
 // ---------------------------------------------------------------------------

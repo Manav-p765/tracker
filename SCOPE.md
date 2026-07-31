@@ -188,7 +188,7 @@ Server-scheduled web push. Three kinds:
 | Kind | Trigger |
 |---|---|
 | **Evening check-in** | daily at a user-set time; skipped if the evening half is already logged |
-| **Goal due date** | on a goal's `dueDate` |
+| **Goal due date** | on a goal's `dueDate`. One goal → its own nudge; **two or more → a single "N goals due today" digest**, because five buzzes in a morning trains you to swipe the app away |
 | **Event reminder** | event date minus its lead days *(v2)* |
 
 Flow: ask notification permission **after** the app is installed and opened (never on first

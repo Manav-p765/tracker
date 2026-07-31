@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { PushSubscription } from "../models/index.js";
+import { PushSubscription } from "@tracker/db";
 import { request, signUpAndIn, type Session } from "../test/helpers.js";
 
 let session: Session;

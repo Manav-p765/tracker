@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { Habit, User } from "../models/index.js";
+import { Habit, User } from "@tracker/db";
 import { hashPassword } from "./auth.service.js";
 import { upsertCheckin } from "./checkin.service.js";
 import { createGoal, setGoalCompleted } from "./goal.service.js";

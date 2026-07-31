@@ -1,7 +1,7 @@
 import type { Habit as HabitDto } from "@tracker/shared";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { HabitLog, User } from "../models/index.js";
+import { HabitLog, User } from "@tracker/db";
 import { hashPassword } from "./auth.service.js";
 import {
   createHabit,

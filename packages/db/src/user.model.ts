@@ -32,6 +32,8 @@ export interface UserDoc {
   remindCheckin: boolean;
   remindGoals: boolean;
   remindEvents: boolean;
+  /** Streak-at-risk nudge, late in the user's day. Own toggle so it is easy to silence. */
+  remindStreak: boolean;
   refreshTokens: RefreshTokenEntry[];
   createdAt: Date;
   updatedAt: Date;
@@ -67,6 +69,7 @@ const userSchema = new Schema<UserDoc>(
     remindCheckin: { type: Boolean, required: true, default: true },
     remindGoals: { type: Boolean, required: true, default: true },
     remindEvents: { type: Boolean, required: true, default: true },
+    remindStreak: { type: Boolean, required: true, default: true },
     // Also never returned by default — it is credential material.
     refreshTokens: { type: [refreshTokenSchema], default: [], select: false },
   },

@@ -53,6 +53,7 @@ export const updateMeSchema = z
     remindCheckin: z.boolean(),
     remindGoals: z.boolean(),
     remindEvents: z.boolean(),
+    remindStreak: z.boolean(),
   })
   .partial()
   .refine((value) => Object.keys(value).length > 0, {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { User } from "../models/index.js";
+import { User } from "@tracker/db";
 import { hashPassword } from "./auth.service.js";
 import {
   issueTokenPair,
