@@ -17,10 +17,9 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const PAPER = [0xf0, 0xed, 0xe3]; // --paper
-const SAGE = [0xa3, 0xb1, 0x8a]; // --sage
-const INK = [0x33, 0x30, 0x2a]; // --ink
-const DOT = [0xd6, 0xd0, 0xc0]; // --dot
+const PAPER = [0xe8, 0xe2, 0xd2]; // --paper (day)
+const SAGE = [0x6f, 0x8a, 0x55]; // --sage (day)
+const INK = [0x2e, 0x2b, 0x24]; // --ink (day)
 
 const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "public", "icons");
 
@@ -95,8 +94,6 @@ function encodePng(size, pixelAt) {
 }
 
 function iconPixel(size) {
-  // Dot grid on the same 16-unit rhythm as the app, scaled to the icon.
-  const pitch = Math.round(size / 12);
   // The X occupies the middle 40% — comfortably inside the maskable safe zone.
   const glyphSize = Math.round(size * 0.4);
   const glyphOrigin = Math.round((size - glyphSize) / 2);
@@ -120,7 +117,6 @@ function iconPixel(size) {
       return INK;
     }
 
-    if (x % pitch === 0 && y % pitch === 0) return DOT;
     return PAPER;
   };
 }

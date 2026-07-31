@@ -46,7 +46,7 @@ export function GoalRow({
   if (goal.difficulty !== undefined) meta.push(goal.difficulty.toUpperCase());
 
   return (
-    <div className="flex items-start gap-dot py-2">
+    <div className="flex items-start gap-unit py-2">
       <div className="pt-0.5">
         <GoalCheck
           done={done}

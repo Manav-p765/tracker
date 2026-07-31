@@ -26,7 +26,13 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
+/** Provided by the bundler's define step, not by a Node runtime. */
+declare const process: { env: { NEXT_PUBLIC_API_URL?: string } };
+
 const YEAR_IN_SECONDS = 60 * 60 * 24 * 365;
+
+/** Inlined at build time by the bundler — the SW has no runtime env. */
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
@@ -78,20 +84,105 @@ const serwist = new Serwist({
 
 serwist.addEventListeners();
 
-/**
- * TODO(Prompt 2.1): replace this stub with the real push pipeline —
- *   - `push`                   → showNotification with a tag per reminder kind
- *                                (notificationTag() in @tracker/shared), so an
- *                                unread evening reminder is replaced, not stacked
- *   - `notificationclick`      → focus an existing client if one exists, else
- *                                openWindow the deep link (/checkin, /goals/:id,
- *                                /events)
- *   - `pushsubscriptionchange` → re-subscribe and re-POST to
- *                                /api/push/subscriptions
+/* ---------------------------------------------------------------------------
+ * Push (ARCHITECTURE.md §8)
  *
- * Until then this listener is intentionally inert: no subscription exists yet
- * (the permission gate ships in Prompt 2.1), so nothing can arrive here.
+ * These listeners must EXIST for a subscription to be meaningful — a browser will
+ * happily hand out a subscription with no push handler, and then every message
+ * either does nothing or triggers Chrome's "This site has been updated in the
+ * background" notice. Prompt 2.2 fills in the payload shapes and the deep links it
+ * sends; the handling below is already correct for them.
+ * ------------------------------------------------------------------------- */
+
+interface PushPayload {
+  title?: string;
+  body?: string;
+  /** One tag per reminder kind, so an unread reminder is replaced, not stacked. */
+  tag?: string;
+  /** Deep link to open on tap: /checkin, /goals/:id, /events. */
+  url?: string;
+}
+
+self.addEventListener("push", (event) => {
+  // A push with no readable payload still has to show something: on Android a
+  // silent push burns the "userVisibleOnly" contract and Chrome shows its own
+  // generic notice instead.
+  let payload: PushPayload = {};
+  try {
+    payload = (event.data?.json() as PushPayload | undefined) ?? {};
+  } catch {
+    const text = event.data?.text();
+    if (text !== undefined && text !== "") payload = { body: text };
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title ?? "tracker", {
+      body: payload.body ?? "Time to check in.",
+      tag: payload.tag ?? "tracker:general",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      data: { url: payload.url ?? "/checkin" },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const target = (event.notification.data as { url?: string } | undefined)?.url ?? "/checkin";
+
+  event.waitUntil(
+    (async () => {
+      const clients = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+
+      // Focus an already-open window rather than stacking another copy of the app.
+      for (const client of clients) {
+        if ("focus" in client) {
+          await client.focus();
+          if ("navigate" in client) await client.navigate(target);
+          return;
+        }
+      }
+
+      await self.clients.openWindow(target);
+    })(),
+  );
+});
+
+/**
+ * The push service can rotate an endpoint without asking. When it does, the stored
+ * row is dead — re-subscribe and hand the new one over, or reminders stop silently.
+ *
+ * Best-effort: the SW has no access token, so this relies on the session cookie
+ * being valid. If it fails, the app repairs the subscription on next open.
  */
-self.addEventListener("push", () => {
-  // no-op until Prompt 2.1
+self.addEventListener("pushsubscriptionchange", (event) => {
+  const change = event as ExtendableEvent & {
+    oldSubscription?: PushSubscription;
+    newSubscription?: PushSubscription;
+  };
+
+  event.waitUntil(
+    (async () => {
+      const applicationServerKey = change.oldSubscription?.options.applicationServerKey;
+      if (applicationServerKey === null || applicationServerKey === undefined) return;
+
+      const renewed =
+        change.newSubscription ??
+        (await self.registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey,
+        }));
+
+      await fetch(`${API_BASE}/api/push/subscribe`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(renewed.toJSON()),
+      }).catch(() => undefined);
+    })(),
+  );
 });

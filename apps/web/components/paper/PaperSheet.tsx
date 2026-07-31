@@ -22,7 +22,7 @@ export function PaperSheet({
   return (
     <div
       className={cn(
-        "rounded-paper bg-card p-dot",
+        "rounded-paper bg-card p-unit",
         bordered && "border-hair border-rule",
         className,
       )}

@@ -4,11 +4,12 @@ import { AccountPanel } from "@/components/auth/AccountPanel";
 import { FileTag } from "@/components/paper/FileTag";
 import { HairlineRule } from "@/components/paper/HairlineRule";
 import { SerifHeading } from "@/components/paper/SerifHeading";
+import { NotificationSetup } from "@/components/push/NotificationSetup";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 /**
- * Settings. Phase 0 ships the paper toggle; Prompt 2.1 adds the notification
- * gate and Prompt 2.2 the reminder time.
+ * Settings. The reminder gate lives here; Prompt 2.2 adds the reminder TIME and
+ * the scheduler that actually sends.
  *
  * The route index below is scaffolding so the stubbed screens stay reachable
  * while the bottom nav only carries the five daily-loop destinations.
@@ -21,21 +22,21 @@ const ELSEWHERE = [
 
 export default function SettingsPage() {
   return (
-    <div className="space-y-dot-2">
-      <header className="space-y-dot">
+    <div className="space-y-unit-2">
+      <header className="space-y-unit">
         <FileTag>SETTINGS</FileTag>
         <SerifHeading level={1}>Settings</SerifHeading>
         <HairlineRule />
       </header>
 
-      <section className="space-y-dot">
+      <section className="space-y-unit">
         <SerifHeading level={3}>Account</SerifHeading>
         <AccountPanel />
       </section>
 
       <HairlineRule />
 
-      <section className="space-y-dot">
+      <section className="space-y-unit">
         <SerifHeading level={3}>Paper</SerifHeading>
         <ThemeToggle />
         <p className="text-[0.9375rem] text-ink-muted">
@@ -45,26 +46,21 @@ export default function SettingsPage() {
 
       <HairlineRule />
 
-      <section className="space-y-dot">
+      <section className="space-y-unit">
         <SerifHeading level={3}>Reminders</SerifHeading>
-        <p className="text-[0.9375rem] text-ink-muted">
-          The evening nudge arrives once the app is installed and you have said yes.
-        </p>
-        <p className="font-mono text-tag uppercase text-ink-muted">
-          Prompt 2.1 asks for permission · Prompt 2.2 sends the push
-        </p>
+        <NotificationSetup />
       </section>
 
       <HairlineRule />
 
-      <section className="space-y-dot">
+      <section className="space-y-unit">
         <SerifHeading level={3}>Elsewhere</SerifHeading>
         <ul className="divide-y divide-rule">
           {ELSEWHERE.map(({ href, label, when }) => (
             <li key={href}>
               <Link
                 href={href}
-                className="flex min-h-tap items-center justify-between gap-dot text-ink"
+                className="flex min-h-tap items-center justify-between gap-unit text-ink"
               >
                 <span className="text-[0.9375rem]">{label}</span>
                 <span className="font-mono text-tag uppercase text-ink-muted">{when}</span>

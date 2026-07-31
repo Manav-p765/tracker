@@ -17,7 +17,7 @@ export function ColorKey({
   className?: string;
 }) {
   return (
-    <ul className={cn("flex flex-wrap gap-dot", className)}>
+    <ul className={cn("flex flex-wrap gap-unit", className)}>
       {series.map(({ label, pastel }) => (
         <li key={label} className="flex items-center gap-1.5">
           <span

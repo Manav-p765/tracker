@@ -36,7 +36,7 @@ export function ThemeToggle() {
             aria-checked={selected}
             onClick={() => setTheme(option)}
             className={cn(
-              "min-h-tap flex-1 border-r-hair border-rule px-dot font-mono text-tag uppercase last:border-r-0",
+              "min-h-tap flex-1 border-r-hair border-rule px-unit font-mono text-tag uppercase last:border-r-0",
               "transition-colors duration-ink",
               selected ? "bg-card text-ink" : "text-ink-muted",
             )}

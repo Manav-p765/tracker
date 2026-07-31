@@ -1,12 +1,14 @@
-import { RouteStub } from "@/components/ui/RouteStub";
+import { EveningCheckin } from "@/components/checkin/EveningCheckin";
 
-export default function CheckinPage() {
-  return (
-    <RouteStub
-      tag="TONIGHT"
-      title="Daily check-in"
-      builtBy="Prompt 1.4"
-      note="Morning intention, then tonight: habits, mood, energy, one moment worth keeping."
-    />
-  );
+/**
+ * The evening ritual, reachable from the bottom nav's LOG tab and the home MOOD
+ * card. `?date=` backfills a missed day inside the 14-day window.
+ */
+export default async function CheckinPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
+  const { date } = await searchParams;
+  return <EveningCheckin {...(date === undefined ? {} : { date })} />;
 }

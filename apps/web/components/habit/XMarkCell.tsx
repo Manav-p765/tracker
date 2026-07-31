@@ -6,12 +6,14 @@ import { PixelGlyph } from "@/components/pixel/PixelGlyph";
 /**
  * One cell of the habit grid (DESIGN.md §6).
  *
- * A --dot-gap × 2 square with a hairline rule border. Done fills it with a pixel
- * X in the habit's own pastel. Empty cells stay genuinely empty — no grey fill,
- * no placeholder tick.
+ * A --rhythm × 2 square with a hairline rule border. Done fills it with a pixel X
+ * in the habit's own pastel — not a font glyph, not a checkbox tick. Empty cells
+ * stay genuinely empty: no grey fill, no placeholder.
  *
- * Presentational only in Phase 0. Prompt 1.3 makes it tappable (optimistic
- * toggle, ≥44px hit area) and builds HabitGrid around it.
+ * Renders as a button when `onToggle` is given and as a plain cell otherwise, so
+ * the same component serves the tappable grid and the read-only month views. The
+ * drawn square keeps its 32px rhythm either way; the tap target is padding around
+ * it, clearing 44px (DESIGN.md §8).
  */
 export function XMarkCell({
   done,
@@ -19,27 +21,52 @@ export function XMarkCell({
   glyph = "x",
   isToday = false,
   label,
+  onToggle,
+  disabled = false,
   className,
 }: {
   done: boolean;
   pastel: Pastel;
   glyph?: string;
   isToday?: boolean;
-  /** Screen-reader text, e.g. "Read · Mon 20 Jul · done". */
+  /** Screen-reader text, e.g. "Read · 2026-07-27 · done". */
   label?: string;
+  onToggle?: () => void;
+  disabled?: boolean;
   className?: string;
 }) {
-  return (
-    <div
+  const square = (
+    <span
+      aria-hidden={onToggle === undefined ? undefined : "true"}
       className={cn(
-        "flex h-dot-2 w-dot-2 items-center justify-center rounded-paper border-hair border-rule",
+        "flex h-unit-2 w-unit-2 items-center justify-center rounded-paper border-hair border-rule",
         className,
       )}
-      role={label === undefined ? undefined : "img"}
-      aria-label={label}
       data-today={isToday || undefined}
     >
       {done ? <PixelGlyph glyph={glyph} pastel={pastel} scale={3} /> : null}
-    </div>
+    </span>
+  );
+
+  if (onToggle === undefined) {
+    return (
+      <span role={label === undefined ? undefined : "img"} aria-label={label}>
+        {square}
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={done}
+      aria-label={label}
+      disabled={disabled}
+      onClick={onToggle}
+      className="-m-1.5 flex min-h-tap min-w-tap items-center justify-center p-1.5 disabled:opacity-60"
+    >
+      {square}
+    </button>
   );
 }

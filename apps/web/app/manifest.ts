@@ -10,7 +10,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "tracker",
     short_name: "tracker",
-    description: "A dot-grid journal for goals, habits and the daily check-in.",
+    description: "A paper journal for goals, habits and the daily check-in.",
     start_url: "/",
     scope: "/",
     display: "standalone",

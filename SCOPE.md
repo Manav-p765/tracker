@@ -8,7 +8,7 @@
 
 ## 1. Product thesis
 
-A phone-first PWA (Android) personal tracker that digitizes the feeling of a physical dot-grid
+A phone-first PWA (Android) personal tracker that digitizes the feeling of a physical
 bullet journal. Calm, focused, personal.
 
 **The single job:** make me want to open it every morning and night, log what I did, and see my
@@ -21,7 +21,7 @@ Single user for now (me), but the data model is multi-user-ready from day one �
 document carries a `userId`.
 
 Look and feel is specified in full in `DESIGN.md`: editorial-archival spine + rare pixel accents
-on calm bone dot-grid paper. Muted, grown-up, personal. Never a slick SaaS dashboard, never a
+on plain warm paper. Muted, grown-up, personal. Never a slick SaaS dashboard, never a
 loud game.
 
 ---
@@ -78,18 +78,20 @@ their own day. Long-term goals with no `dueDate` are never overdue.
 The most important screen in the app. Two moments, **one document per day**.
 
 ### Morning — intention
-- Set today's intention (short free-text; 1–5 lines).
+- Set today's intention: **one line**, entered straight on the home hero card.
 - Optionally pick which of today's goals you intend to hit.
-- ~15 seconds.
+- ~15 seconds, no sheet.
 
 ### Evening — the log
 In this order on screen:
 
 1. **Habit grid** — user-defined habits as a row of cells; tap to fill with an X mark.
-2. **Mood + energy** — logged via the **color-key pastel squares** (`DESIGN.md` §6): tap a
-   labeled square. Stored 1–10, also plotted as an overlaid jagged line on the history page.
-3. **Memorable moment** — one optional line. "What's worth remembering about today?"
-4. **Goal checkoff** — today's daily goals plus anything due today, as a tick list.
+2. **Mood** — logged via the **color-key pastel squares** (`DESIGN.md` §6): tap a labeled square.
+   Stored **1–5**, one value per square, and plotted as a jagged line on the history page.
+3. **Energy** — the same control, own labels (DRAINED → CHARGED). Also 1–5.
+4. **Sleep** — hours, 0–24 in half-hour steps, on a stepper and slider rather than a keyboard.
+5. **Memorable moment** — one optional line. "What's worth remembering about today?"
+6. **Goal checkoff** — today's daily goals plus anything due today, as a tick list.
 
 ### Rules
 - One `checkin` per `{userId, date}`, `date` as `"YYYY-MM-DD"`. Unique compound index.
@@ -100,9 +102,16 @@ In this order on screen:
 - Backfill of past dates is allowed. Future dates are rejected.
 - Habit ticks live in `habitLogs` (their own collection), not embedded in the check-in, so the
   grid and heatmap query them directly.
-- Completion state is shown plainly ("morning logged / evening logged"). Never scored.
-- **The evening flow must be completable in under 60 seconds with one thumb.** Saves happen as
-  you go — no submit-everything button.
+- Completion state is shown plainly. `completed` turns true only when the evening flow is actually
+  finished; a partial day stays false. Never scored.
+- **The evening flow must be completable in under 60 seconds with one thumb.**
+- **What saves when.** The evening sheet commits with a single "Done" — one upsert for mood,
+  energy, sleep hours, moment and goal ticks together. Two things write immediately instead,
+  because they stand on their own: **habit ticks** (their own collection) and the **one-tap mood
+  square on the home card**. An abandoned sheet leaves no partial row, while the one-tap paths
+  stay instant.
+- Backfill reaches back **14 days**; further than that is refused, on the grounds that it is more
+  likely a mistyped date than a memory.
 
 ---
 

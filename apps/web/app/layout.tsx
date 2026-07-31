@@ -10,7 +10,7 @@ import { THEME_BOOTSTRAP_SCRIPT } from "@/lib/theme";
 
 export const metadata: Metadata = {
   title: "tracker",
-  description: "A dot-grid journal for goals, habits and the daily check-in.",
+  description: "A paper journal for goals, habits and the daily check-in.",
   applicationName: "tracker",
   appleWebApp: {
     capable: true,
@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Applies the stored theme before first paint so night paper never flashes bone. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_SCRIPT }} />
       </head>
-      <body className="dot-grid min-h-dvh antialiased">
+      <body className="min-h-dvh antialiased">
         <Providers>
           <SentryInit />
           {children}

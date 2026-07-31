@@ -1,9 +1,9 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Tailwind is the delivery mechanism for styles/tokens.css — every value below
- * is a var() reference, so a token change flows everywhere and night paper needs
- * no `dark:` variants (the vars flip themselves, DESIGN.md §2).
+ * Tailwind is the delivery mechanism for styles/tokens.css — every value below is
+ * a var() reference, so a token change flows everywhere and night paper needs NO
+ * `dark:` variants: the vars flip themselves under [data-theme] (DESIGN.md §2).
  *
  * Consequence to know: because the colour tokens are hex strings inside vars,
  * Tailwind's slash-opacity syntax (bg-sage/40) will not work. Use the *-wash
@@ -20,11 +20,16 @@ const config: Config = {
       colors: {
         paper: "var(--paper)",
         card: "var(--card)",
-        dot: "var(--dot)",
         rule: "var(--rule)",
         ink: {
           DEFAULT: "var(--ink)",
           muted: "var(--ink-muted)",
+        },
+        // The inverted surface, for the hero card.
+        dark: {
+          DEFAULT: "var(--dark)",
+          ink: "var(--dark-ink)",
+          rule: "var(--dark-rule)",
         },
         sage: { DEFAULT: "var(--sage)", wash: "var(--sage-wash)" },
         clay: { DEFAULT: "var(--clay)", wash: "var(--clay-wash)" },
@@ -33,31 +38,32 @@ const config: Config = {
         lilac: { DEFAULT: "var(--lilac)", wash: "var(--lilac-wash)" },
       },
       fontFamily: {
-        // Fraunces — editorial serif, headings only.
+        // Fraunces — editorial serif, headings and the oversized numerals.
         heading: "var(--font-heading)",
-        // Space Mono — labels, dates, file tags, and EVERY number in the app.
+        // Space Mono — labels, dates, card tags, and EVERY number in the app.
         mono: "var(--font-mono)",
         // Inter — body and UI.
         sans: "var(--font-body)",
       },
       fontSize: {
-        // The mono file-tag eyebrow (DESIGN.md §4).
+        // The mono card tag / eyebrow (DESIGN.md §4).
         tag: ["0.6875rem", { lineHeight: "1", letterSpacing: "0.08em" }],
         // Axis ticks, weekday initials, grid headers.
         micro: ["0.625rem", { lineHeight: "1", letterSpacing: "0.06em" }],
       },
       /**
-       * Everything spaces on the dot-grid pitch so content sits on the paper.
-       * dot = 16px, dot-2 = 32px, dot-3 = 48px …
+       * The base spacing scale. unit = 16px, unit-2 = 32px, unit-3 = 48px …
+       * Formerly named for the dot-grid pitch; the grid is gone, the rhythm stays.
        */
       spacing: {
-        dot: "var(--dot-gap)",
-        "dot-2": "calc(var(--dot-gap) * 2)",
-        "dot-3": "calc(var(--dot-gap) * 3)",
-        "dot-4": "calc(var(--dot-gap) * 4)",
-        "dot-6": "calc(var(--dot-gap) * 6)",
+        unit: "var(--rhythm)",
+        "unit-2": "calc(var(--rhythm) * 2)",
+        "unit-3": "calc(var(--rhythm) * 3)",
+        "unit-4": "calc(var(--rhythm) * 4)",
+        "unit-6": "calc(var(--rhythm) * 6)",
         // A tap target that clears the 44px minimum on the same rhythm.
-        tap: "calc(var(--dot-gap) * 3 - 4px)",
+        tap: "calc(var(--rhythm) * 3 - 4px)",
+        bento: "var(--bento-gap)",
       },
       borderRadius: {
         paper: "var(--radius)",
@@ -72,12 +78,8 @@ const config: Config = {
       maxWidth: {
         content: "var(--content-max)",
       },
-      backgroundImage: {
-        // The dot-grid paper itself. Applied via .dot-grid in globals.css.
-        "dot-grid": "radial-gradient(var(--dot) var(--dot-size), transparent 0)",
-      },
-      backgroundSize: {
-        "dot-grid": "var(--dot-gap) var(--dot-gap)",
+      gap: {
+        bento: "var(--bento-gap)",
       },
       transitionDuration: {
         // The only motion the design permits (DESIGN.md §8).

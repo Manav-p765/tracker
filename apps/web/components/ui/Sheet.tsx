@@ -76,17 +76,17 @@ export function Sheet({
         className={cn(
           "absolute inset-x-0 bottom-0 mx-auto max-w-content",
           "max-h-[88dvh] overflow-y-auto rounded-t-[6px] border-t-hair border-rule bg-paper",
-          "pb-[max(var(--dot-gap),env(safe-area-inset-bottom))]",
+          "pb-[max(var(--rhythm),env(safe-area-inset-bottom))]",
         )}
       >
-        <div className="space-y-dot p-dot">
+        <div className="space-y-unit p-unit">
           <SerifHeading level={2}>{title}</SerifHeading>
           <HairlineRule />
           {children}
         </div>
 
         {footer === undefined ? null : (
-          <div className="sticky bottom-0 border-t-hair border-rule bg-paper px-dot py-dot">
+          <div className="sticky bottom-0 border-t-hair border-rule bg-paper px-unit py-unit">
             {footer}
           </div>
         )}

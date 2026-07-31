@@ -15,3 +15,6 @@ export * from "./constants/queues.js";
 export * from "./schemas/common.js";
 export * from "./schemas/auth.js";
 export * from "./schemas/goal.js";
+export * from "./schemas/habit.js";
+export * from "./schemas/checkin.js";
+export * from "./schemas/push.js";

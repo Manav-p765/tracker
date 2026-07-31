@@ -15,7 +15,7 @@ export function EmptyState({
   withVignette?: boolean;
 }) {
   return (
-    <div className="space-y-dot py-dot-2">
+    <div className="space-y-unit py-unit-2">
       {withVignette ? <PixelVignette scale={2} /> : null}
       <p className="text-ink-muted">{children}</p>
     </div>

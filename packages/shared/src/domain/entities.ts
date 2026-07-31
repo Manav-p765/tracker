@@ -11,7 +11,6 @@
 
 import type { DayKey, MonthKey } from "../date/day-key.js";
 import type {
-  CheckinHalf,
   Difficulty,
   GoalStatus,
   Horizon,
@@ -152,27 +151,35 @@ export interface HabitStreak {
 export interface Checkin extends Timestamped, UserOwned {
   _id: Id;
   date: DayKey;
-  /** Morning half: 1–5 intention lines. */
-  intention: string[];
-  /** 1–10, logged through the pastel color key (DESIGN.md §6). */
+  /** Morning half: today's intention, one line. */
+  intention?: string;
+  /** 1–5, logged through the pastel colour key (DESIGN.md §6). */
   mood?: number;
   energy?: number;
-  /** Hours. The third line on the vitals chart. */
-  sleep?: number;
+  /** Hours slept, in half-hour steps. The third line on the vitals chart. */
+  sleepHours?: number;
   /** The one memorable moment. */
   moment?: string;
   /** Goals ticked during this check-in. */
-  completed: Id[];
-  morningLoggedAt?: IsoInstant | null;
-  eveningLoggedAt?: IsoInstant | null;
+  completedGoalIds: Id[];
+  /** True once the evening flow has been finished. A partial day stays false. */
+  completed: boolean;
 }
+
+/** GET /checkins/today returns this when the day has nothing logged yet. */
+export interface EmptyCheckin {
+  date: DayKey;
+  exists: false;
+}
+
+export type CheckinOrEmpty = (Checkin & { exists: true }) | EmptyCheckin;
 
 /** One point on the vitals chart (`GET /history/vitals`). */
 export interface VitalsPoint {
   date: DayKey;
   mood: number | null;
   energy: number | null;
-  sleep: number | null;
+  sleepHours: number | null;
 }
 
 export interface MonthSummary {
@@ -288,9 +295,8 @@ export interface ApiFailure {
 
 export type ApiResponse<T> = ApiSuccess<T> | ApiFailure;
 
-/** Payload of `checkin:updated` — re-exported here so both halves stay typed. */
-export interface CheckinUpdatedPayload {
+/** Payload of `checkin:changed`. The whole document, so the cache can patch. */
+export interface CheckinChangedPayload {
   date: DayKey;
-  half: CheckinHalf;
   checkin: Checkin;
 }

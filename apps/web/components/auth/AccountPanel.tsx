@@ -13,13 +13,13 @@ export function AccountPanel() {
   const [signingOut, setSigningOut] = useState(false);
 
   return (
-    <div className="space-y-dot">
+    <div className="space-y-unit">
       <dl className="space-y-1.5">
-        <div className="flex items-baseline justify-between gap-dot">
+        <div className="flex items-baseline justify-between gap-unit">
           <dt className="font-mono text-tag uppercase text-ink-muted">Email</dt>
           <dd className="font-mono text-[0.875rem] text-ink">{user?.email ?? "—"}</dd>
         </div>
-        <div className="flex items-baseline justify-between gap-dot">
+        <div className="flex items-baseline justify-between gap-unit">
           <dt className="font-mono text-tag uppercase text-ink-muted">Timezone</dt>
           <dd className="font-mono text-[0.875rem] text-ink">{user?.timezone ?? "—"}</dd>
         </div>

@@ -8,7 +8,7 @@ import { cn } from "@/lib/cn";
 /**
  * The goal checkoff: a hairline square that takes a pixel X when done.
  *
- * The cell itself is on the dot-grid rhythm (--dot-gap × 2), but the tap target is
+ * The cell itself is on the base rhythm (--rhythm × 2), but the tap target is
  * padded out past 44px so it is comfortable one-handed (DESIGN.md §8). An empty
  * cell stays genuinely empty — no grey fill, no ghost tick.
  *
@@ -47,7 +47,7 @@ export function GoalCheck({
     >
       <span
         aria-hidden="true"
-        className="flex h-dot-2 w-dot-2 items-center justify-center rounded-paper border-hair border-rule"
+        className="flex h-unit-2 w-unit-2 items-center justify-center rounded-paper border-hair border-rule"
       >
         {done ? <PixelGlyph glyph="x" pastel={pastel} scale={3} /> : null}
       </span>

@@ -18,6 +18,13 @@
       "cache": false,
       "persistent": true
     },
+    "start": {
+      // Production servers: apps/web on :3000, apps/api on :4000. Run `build`
+      // first — this deliberately does not depend on it, because a persistent
+      // task cannot be depended upon in turbo.
+      "cache": false,
+      "persistent": true
+    },
     "lint": {
       "dependsOn": ["^build"]
     },

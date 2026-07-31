@@ -44,8 +44,8 @@ export function GoalDetailView({ id }: { id: string }) {
   if (goal.completedDate !== undefined) meta.push(`DONE ${goal.completedDate}`);
 
   return (
-    <div className="space-y-dot-2 pb-dot-4">
-      <header className="space-y-dot">
+    <div className="space-y-unit-2 pb-unit-4">
+      <header className="space-y-unit">
         <FileTag>{HORIZON_TAG[goal.horizon]}</FileTag>
 
         {/* The breadcrumb, furthest ancestor first, so it reads like a path. */}
@@ -65,7 +65,7 @@ export function GoalDetailView({ id }: { id: string }) {
           </p>
         ) : null}
 
-        <div className="flex items-start gap-dot">
+        <div className="flex items-start gap-unit">
           <div className="pt-1">
             <GoalCheck
               done={done}
@@ -105,14 +105,14 @@ export function GoalDetailView({ id }: { id: string }) {
       </header>
 
       {goal.notes === undefined ? null : (
-        <section className="space-y-dot">
+        <section className="space-y-unit">
           <SerifHeading level={3}>Notes</SerifHeading>
           <p className="whitespace-pre-wrap text-ink">{goal.notes}</p>
           <HairlineRule />
         </section>
       )}
 
-      <section className="space-y-dot">
+      <section className="space-y-unit">
         <SerifHeading level={3}>
           {childHorizon === undefined ? "Parts" : `${HORIZON_TAG[childHorizon]} parts`}
         </SerifHeading>
@@ -141,8 +141,8 @@ export function GoalDetailView({ id }: { id: string }) {
 
       <HairlineRule />
 
-      <section className="space-y-dot">
-        <div className="flex gap-dot">
+      <section className="space-y-unit">
+        <div className="flex gap-unit">
           <Button onClick={() => setEditOpen(true)} className="flex-1">
             Edit
           </Button>
@@ -157,7 +157,7 @@ export function GoalDetailView({ id }: { id: string }) {
         </div>
 
         {confirmingDelete ? (
-          <div className="space-y-dot rounded-paper border-hair border-rule bg-card p-dot">
+          <div className="space-y-unit rounded-paper border-hair border-rule bg-card p-unit">
             <p className="text-[0.9375rem] text-ink">
               Delete “{goal.title}”?
               {goal.rollup.totalChildren > 0 ? (
@@ -169,7 +169,7 @@ export function GoalDetailView({ id }: { id: string }) {
                 </>
               ) : null}
             </p>
-            <div className="flex gap-dot">
+            <div className="flex gap-unit">
               <Button
                 variant="plain"
                 onClick={() => setConfirmingDelete(false)}

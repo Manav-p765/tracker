@@ -1,47 +1,57 @@
 /* =============================================================================
  * tokens.css — the ONLY file in the app allowed to contain a hex value.
- * Verbatim from DESIGN.md §2. Components consume tokens via Tailwind classes
+ * Mirrors DESIGN.md §2. Components consume tokens via Tailwind classes
  * (bg-paper, text-ink, border-rule) or var(--token); never a literal colour.
  *
- * Day paper is the default. Night paper follows the OS, and an explicit
- * data-theme on <html> beats the OS in BOTH directions (DESIGN.md §2).
+ * Colour is THEME-AWARE, and that is the whole point of this file. The accents
+ * are NOT the same two palettes lightened and darkened — pastels that glow on
+ * dark paper wash out to nothing on light paper, so day paper takes bold
+ * saturated accents and night paper keeps the soft glowing ones.
  *
- * Known, deliberate exception: app/manifest.ts repeats --paper as a literal,
- * because the Web App Manifest is JSON and cannot read CSS custom properties.
+ * Day paper is the default. Night paper follows the OS, and an explicit
+ * data-theme on <html> beats the OS in BOTH directions.
+ *
+ * Known, deliberate exception: lib/theme-color.ts repeats --paper as a literal,
+ * because the Web App Manifest and <meta name="theme-color"> are read by the OS
+ * before any stylesheet exists.
  * ========================================================================== */
 
 :root {
-  /* paper */
-  --paper: #f0ede3; /* page background — bone/cream */
-  --card: #e4dfd2; /* cards, folder tabs, sunken cells — soft oat */
-  --dot: #d6d0c0; /* dot-grid dot */
-  --rule: #dcd6c7; /* hairline rule */
+  /* paper — deeper warm stock, no pattern (the dot grid was dropped) */
+  --paper: #e8e2d2;
+  --card: #f2eee4;
+  --rule: #cdc5b2;
 
   /* ink */
-  --ink: #33302a; /* primary text, X marks, chart axis */
-  --ink-muted: #6b6659; /* labels, mono file tags, axis ticks */
+  --ink: #2e2b24;
+  --ink-muted: #736c5c;
 
-  /* accent pastels — dusty, desaturated, coordinated. No primary. */
-  --sage: #a3b18a;
-  --clay: #d9a08c; /* muted coral */
-  --powder: #9db4c0; /* powder blue */
-  --ochre: #e0c79a; /* buttercream */
-  --lilac: #b3a6c4; /* dusty lilac */
+  /* the inverted surface, for the hero card */
+  --dark: #2e2b24;
+  --dark-ink: #f2eee4;
+  --dark-rule: #4a463c; /* hairlines and meter tracks ON the dark card */
 
-  /* pastel washes — same hues at low opacity, for fills and heatmap steps */
-  --sage-wash: #a3b18a26;
-  --clay-wash: #d9a08c26;
-  --powder-wash: #9db4c026;
-  --ochre-wash: #e0c79a26;
-  --lilac-wash: #b3a6c426;
+  /* accents — BOLD and saturated, so they hold against warm paper */
+  --sage: #6f8a55;
+  --clay: #c06a48;
+  --powder: #5e8ca0;
+  --ochre: #cf9e42;
+  --lilac: #8b7ba8;
+
+  /* washes — tinted card fills, opaque so text stays legible on them */
+  --sage-wash: #d3dec0;
+  --clay-wash: #edd3c6;
+  --powder-wash: #cfe0e6;
+  --ochre-wash: #efe1c0;
+  --lilac-wash: #ded6e6;
 
   /* geometry */
-  --dot-gap: 16px; /* dot-grid pitch — the app's base rhythm unit */
-  --dot-size: 1px;
+  --rhythm: 16px; /* the app's base spacing unit */
   --stroke-hair: 1px;
   --stroke-ink: 1.75px;
   --radius: 3px; /* paper barely rounds */
   --radius-tab: 6px 6px 0 0;
+  --bento-gap: 11px;
 
   /* type — the families are injected by next/font in app/layout.tsx */
   --font-heading: var(--font-fraunces), Georgia, "Times New Roman", serif;
@@ -49,37 +59,41 @@
   --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
   /* layout */
-  --content-max: 720px; /* single column; no multi-column dashboards */
+  --content-max: 720px;
 
   color-scheme: light;
 }
 
 /* -----------------------------------------------------------------------------
- * Night paper — a warm charcoal sheet, never blue-black, never pure #000.
- * Same hues; pastels get a small luminance lift to hold on the dark ground.
+ * Night paper — warm dark stock, never blue-black, never pure #000.
+ * The accents go back to soft glowing pastels: on this ground the bold day
+ * accents would shout.
  * -------------------------------------------------------------------------- */
 
-/* The OS asks for dark, and the user has not explicitly chosen day paper. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #1e1c18;
-    --card: #282520;
-    --dot: #3a362f;
-    --rule: #383430;
-    --ink: #e8e4d9;
-    --ink-muted: #9a9486;
-    --sage: #b2c09a;
-    --clay: #e2ae9b;
-    --powder: #aac0cc;
-    --ochre: #e8d2aa;
-    --lilac: #c0b4d0;
+    --paper: #1e1b17;
+    --card: #2a2620;
+    --rule: #3a352c;
 
-    /* washes go to 0x33 alpha in dark for equivalent presence */
-    --sage-wash: #b2c09a33;
-    --clay-wash: #e2ae9b33;
-    --powder-wash: #aac0cc33;
-    --ochre-wash: #e8d2aa33;
-    --lilac-wash: #c0b4d033;
+    --ink: #ede7da;
+    --ink-muted: #a49b8b;
+
+    --dark: #100e0b;
+    --dark-ink: #ede7da;
+    --dark-rule: #332f27;
+
+    --sage: #a3b18a;
+    --clay: #d9a08c;
+    --powder: #9db4c0;
+    --ochre: #e0c79a;
+    --lilac: #b3a6c4;
+
+    --sage-wash: #2c3327;
+    --clay-wash: #382c27;
+    --powder-wash: #26313a;
+    --ochre-wash: #3a3324;
+    --lilac-wash: #302b38;
 
     color-scheme: dark;
   }
@@ -87,23 +101,28 @@
 
 /* The user explicitly chose night paper — wins over an OS that says light. */
 :root[data-theme="dark"] {
-  --paper: #1e1c18;
-  --card: #282520;
-  --dot: #3a362f;
-  --rule: #383430;
-  --ink: #e8e4d9;
-  --ink-muted: #9a9486;
-  --sage: #b2c09a;
-  --clay: #e2ae9b;
-  --powder: #aac0cc;
-  --ochre: #e8d2aa;
-  --lilac: #c0b4d0;
+  --paper: #1e1b17;
+  --card: #2a2620;
+  --rule: #3a352c;
 
-  --sage-wash: #b2c09a33;
-  --clay-wash: #e2ae9b33;
-  --powder-wash: #aac0cc33;
-  --ochre-wash: #e8d2aa33;
-  --lilac-wash: #c0b4d033;
+  --ink: #ede7da;
+  --ink-muted: #a49b8b;
+
+  --dark: #100e0b;
+  --dark-ink: #ede7da;
+  --dark-rule: #332f27;
+
+  --sage: #a3b18a;
+  --clay: #d9a08c;
+  --powder: #9db4c0;
+  --ochre: #e0c79a;
+  --lilac: #b3a6c4;
+
+  --sage-wash: #2c3327;
+  --clay-wash: #382c27;
+  --powder-wash: #26313a;
+  --ochre-wash: #3a3324;
+  --lilac-wash: #302b38;
 
   color-scheme: dark;
 }

@@ -31,7 +31,7 @@ export function RequireSession({ children }: { children: ReactNode }) {
   if (status === "loading") {
     // A quiet mono ellipsis — the design forbids skeleton shimmer (DESIGN.md §8).
     return (
-      <p className="px-dot py-dot-3 font-mono text-tag uppercase text-ink-muted" role="status">
+      <p className="px-unit py-unit-3 font-mono text-tag uppercase text-ink-muted" role="status">
         …
       </p>
     );

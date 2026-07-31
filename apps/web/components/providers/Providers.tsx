@@ -4,6 +4,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { useGoalSocketSync } from "@/lib/goal-socket";
+import { useCheckinSocketSync } from "@/lib/checkin-socket";
+import { useHabitSocketSync } from "@/lib/habit-socket";
 import { createQueryClient } from "@/lib/query";
 import { SessionProvider, useSession } from "@/lib/session";
 import { connectSocket, disconnectSocket } from "@/lib/socket";
@@ -36,7 +38,7 @@ export function Providers({ children }: { children: ReactNode }) {
  * The per-feature cache listeners hang off this too, one hook each:
  *   goals    → Prompt 1.2
  *   habits   → Prompt 1.3
- *   checkins → Prompt 1.4
+ *   checkins → Prompt 1.4 ✓
  */
 function SocketBridge({ children }: { children: ReactNode }) {
   const { status } = useSession();
@@ -51,6 +53,8 @@ function SocketBridge({ children }: { children: ReactNode }) {
   }, [authenticated]);
 
   useGoalSocketSync(authenticated);
+  useHabitSocketSync(authenticated);
+  useCheckinSocketSync(authenticated);
 
   return <>{children}</>;
 }

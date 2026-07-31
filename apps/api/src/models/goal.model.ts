@@ -58,6 +58,8 @@ const goalSchema = new Schema<GoalDoc>(
 goalSchema.index({ userId: 1, horizon: 1, status: 1 });
 goalSchema.index({ userId: 1, parentGoalId: 1 });
 goalSchema.index({ userId: 1, dueDate: 1 });
+// History: goals completed per day (services/history.service.ts).
+goalSchema.index({ userId: 1, completedDate: 1 });
 
 /**
  * The one invariant cheap enough to guard at the document level: a goal cannot be

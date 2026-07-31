@@ -21,7 +21,7 @@ export function Button({
     <button
       type="button"
       className={cn(
-        "min-h-tap rounded-paper px-dot text-[0.9375rem] font-medium text-ink",
+        "min-h-tap rounded-paper px-unit text-[0.9375rem] font-medium text-ink",
         "transition-colors duration-ink",
         variant === "quiet" && "border-hair border-rule bg-card",
         variant === "plain" && "border-hair border-transparent",

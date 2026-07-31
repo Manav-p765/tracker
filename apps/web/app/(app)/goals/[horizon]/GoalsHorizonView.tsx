@@ -48,8 +48,8 @@ export function GoalsHorizonView({ horizon }: { horizon: Horizon }) {
   };
 
   return (
-    <div className="space-y-dot-2 pb-dot-4">
-      <header className="space-y-dot">
+    <div className="space-y-unit-2 pb-unit-4">
+      <header className="space-y-unit">
         <FileTag>{HORIZON_TAG[horizon]}</FileTag>
         <SerifHeading level={1}>{HORIZON_LABEL[horizon]} goals</SerifHeading>
         <HairlineRule />
@@ -91,7 +91,7 @@ export function GoalsHorizonView({ horizon }: { horizon: Horizon }) {
       )}
 
       {/* Primary action in the thumb arc, clear of the bottom nav. */}
-      <div className="fixed inset-x-0 bottom-[calc(var(--dot-gap)*3.5)] z-20 mx-auto max-w-content px-dot">
+      <div className="fixed inset-x-0 bottom-[calc(var(--rhythm)*3.5)] z-20 mx-auto max-w-content px-unit">
         <Button onClick={openCreate} className="w-full">
           New {HORIZON_LABEL[horizon].toLowerCase()} goal
         </Button>

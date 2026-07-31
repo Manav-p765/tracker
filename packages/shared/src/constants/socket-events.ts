@@ -8,7 +8,7 @@
 
 import type {
   Checkin,
-  CheckinUpdatedPayload,
+  CheckinChangedPayload,
   Goal,
   Habit,
   Id,
@@ -30,7 +30,7 @@ export const SOCKET_EVENTS = {
   HABIT_ARCHIVED: "habit:archived",
   HABIT_LOG_CHANGED: "habitLog:changed",
 
-  CHECKIN_UPDATED: "checkin:updated",
+  CHECKIN_CHANGED: "checkin:changed",
 
   // v2
   PROJECT_UPDATED: "project:updated",
@@ -69,7 +69,7 @@ export interface ServerToClientEvents {
   "habit:archived": (habit: Habit) => void;
   "habitLog:changed": (payload: HabitLogChangedPayload) => void;
 
-  "checkin:updated": (payload: CheckinUpdatedPayload) => void;
+  "checkin:changed": (payload: CheckinChangedPayload) => void;
 
   "project:updated": (project: LearningProject) => void;
   "milestone:updated": (milestone: ProjectMilestone) => void;
@@ -83,4 +83,4 @@ export interface ServerToClientEvents {
 export type ClientToServerEvents = Record<string, never>;
 
 /** Re-exported for convenience at emit sites. */
-export type { Checkin, CheckinUpdatedPayload };
+export type { Checkin, CheckinChangedPayload };

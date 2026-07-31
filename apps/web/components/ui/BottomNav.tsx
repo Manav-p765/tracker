@@ -31,7 +31,7 @@ export function BottomNav() {
       aria-label="Primary"
       className="fixed inset-x-0 bottom-0 z-10 border-t-hair border-rule bg-paper"
     >
-      <ul className="mx-auto flex max-w-content items-stretch justify-between px-dot">
+      <ul className="mx-auto flex max-w-content items-stretch justify-between px-unit">
         {ITEMS.map(({ href, label }) => {
           const active = isActive(href);
           return (

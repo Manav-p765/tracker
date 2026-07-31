@@ -21,7 +21,7 @@ export function RouteStub({
   note?: string;
 }) {
   return (
-    <section className="space-y-dot">
+    <section className="space-y-unit">
       <FileTag>{tag}</FileTag>
       <SerifHeading level={1}>{title}</SerifHeading>
       <HairlineRule />

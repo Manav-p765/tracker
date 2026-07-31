@@ -1,3 +1,4 @@
+import { SCALE_MAX, SCALE_MIN, SLEEP_MAX, SLEEP_MIN } from "@tracker/shared";
 import { Schema, model, type HydratedDocument, type Model, type Types } from "mongoose";
 
 import { requiredDayKey, userIdField } from "./shared-fields.js";
@@ -6,25 +7,27 @@ import { requiredDayKey, userIdField } from "./shared-fields.js";
  * checkins (ARCHITECTURE.md §3) — one document per user per day.
  *
  * The unique index on { userId, date } is the invariant behind the whole ritual:
- * morning and evening patch the SAME document, so the write path must always be
- * `$set` on explicit paths (never a whole-document replacement) and saving one
- * half can never wipe the other. Prompt 1.4 builds that write path.
+ * every write is an upsert against it, so logging your mood at lunchtime and the
+ * rest at night touch the SAME document and neither can duplicate the day.
  *
- * Every field except `date` is optional — a partial check-in is a valid check-in.
+ * The write path uses `$set` on explicit paths only — never a whole-document
+ * replacement — so a partial save cannot wipe a field it did not mention.
+ *
+ * Every field except `date` is optional: a partial check-in is a valid check-in.
+ * `completed` is the separate signal that the evening flow was actually finished.
  */
 
 export interface CheckinDoc {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
   date: string;
-  intention: string[];
+  intention?: string;
   mood?: number;
   energy?: number;
-  sleep?: number;
+  sleepHours?: number;
   moment?: string;
-  completed: Types.ObjectId[];
-  morningLoggedAt?: Date | null;
-  eveningLoggedAt?: Date | null;
+  completedGoalIds: Types.ObjectId[];
+  completed: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,22 +36,27 @@ const checkinSchema = new Schema<CheckinDoc>(
   {
     userId: userIdField,
     date: requiredDayKey,
-    intention: {
-      type: [String],
-      default: [],
+    /** Today's intention, one line (the morning half). */
+    intention: { type: String, trim: true, maxlength: 280 },
+    /** 1–5 — one value per colour-key square, not a 1–10 range (DESIGN.md §6). */
+    mood: { type: Number, min: SCALE_MIN, max: SCALE_MAX },
+    energy: { type: Number, min: SCALE_MIN, max: SCALE_MAX },
+    /** Hours slept, half-hour steps. The third line on the vitals chart. */
+    sleepHours: {
+      type: Number,
+      min: SLEEP_MIN,
+      max: SLEEP_MAX,
       validate: {
-        validator: (lines: string[]) => lines.length <= 5,
-        message: "At most five intention lines",
+        validator: (value: number) => Math.round(value * 2) === value * 2,
+        message: "Sleep is logged in half-hour steps",
       },
     },
-    mood: { type: Number, min: 1, max: 10 },
-    energy: { type: Number, min: 1, max: 10 },
-    // Hours slept. The third line on the vitals chart.
-    sleep: { type: Number, min: 0, max: 24 },
     moment: { type: String, trim: true, maxlength: 280 },
-    completed: { type: [{ type: Schema.Types.ObjectId, ref: "Goal" }], default: [] },
-    morningLoggedAt: { type: Date, default: null },
-    eveningLoggedAt: { type: Date, default: null },
+    completedGoalIds: {
+      type: [{ type: Schema.Types.ObjectId, ref: "Goal" }],
+      default: [],
+    },
+    completed: { type: Boolean, required: true, default: false },
   },
   { timestamps: true, collection: "checkins" },
 );

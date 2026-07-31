@@ -14,7 +14,7 @@ import { BottomNav } from "@/components/ui/BottomNav";
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <RequireSession>
-      <div className="mx-auto flex max-w-content justify-end px-dot pt-dot">
+      <div className="mx-auto flex max-w-content justify-end px-unit pt-unit">
         <Link
           href="/settings"
           className="font-mono text-tag uppercase tracking-[0.08em] text-ink-muted"
@@ -22,7 +22,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           Settings
         </Link>
       </div>
-      <main className="mx-auto max-w-content px-dot pb-dot-4 pt-dot">{children}</main>
+      <main className="mx-auto max-w-content px-unit pb-unit-4 pt-unit">{children}</main>
       <BottomNav />
     </RequireSession>
   );

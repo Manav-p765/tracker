@@ -177,6 +177,17 @@ export function useGoals(query: ListGoalsQuery): UseQueryResult<GoalWithRollup[]
   });
 }
 
+/**
+ * Today's daily goals plus anything else due today — the hero card's list, and
+ * later the evening check-in's (SCOPE.md §3).
+ */
+export function useTodayGoals(): UseQueryResult<GoalWithRollup[]> {
+  return useQuery({
+    queryKey: goalKeys.today(),
+    queryFn: goalsApi.today,
+  });
+}
+
 export function useGoalDetail(id: string): UseQueryResult<GoalDetail> {
   return useQuery({
     queryKey: goalKeys.detail(id),

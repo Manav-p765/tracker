@@ -154,7 +154,7 @@ export function GoalSheet({
       onClose={onClose}
       title={goal === undefined ? "New goal" : "Edit goal"}
       footer={
-        <div className="flex gap-dot">
+        <div className="flex gap-unit">
           <Button variant="plain" onClick={onClose} className="flex-1" disabled={saving}>
             Cancel
           </Button>
@@ -164,7 +164,7 @@ export function GoalSheet({
         </div>
       }
     >
-      <div className="space-y-dot">
+      <div className="space-y-unit">
         <TextField
           label="Title"
           value={form.title}
@@ -207,7 +207,7 @@ export function GoalSheet({
           hint={form.horizon === "daily" ? "A daily goal is due on its own day if left blank." : undefined}
         />
 
-        <div className="flex gap-dot">
+        <div className="flex gap-unit">
           <SelectField
             label="Difficulty"
             value={form.difficulty}

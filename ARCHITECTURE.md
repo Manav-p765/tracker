@@ -99,7 +99,7 @@ Index: `{ email: 1 }` unique.
 | sortOrder | Number | default 0 |
 
 Indexes: `{ userId: 1, horizon: 1, status: 1 }`, `{ userId: 1, parentGoalId: 1 }`,
-`{ userId: 1, dueDate: 1 }`.
+`{ userId: 1, dueDate: 1 }`, `{ userId: 1, completedDate: 1 }` (history: goals completed per day).
 
 **`overdue` is derived, never stored** — `status === 'active' && dueDate < today(user.tz)`.
 Rollup (`completedChildren` / `totalChildren` / `progressPercent`) is computed on read via
@@ -139,18 +139,25 @@ One document per user per day. Morning and evening halves patch the same documen
 |---|---|---|
 | userId | ObjectId | required |
 | date | String | `"YYYY-MM-DD"`, required |
-| intention | `[String]` | morning, max 5 lines |
-| mood | Number | 1–10, optional (logged via the color-key squares) |
-| energy | Number | 1–10, optional |
-| sleep | Number | hours, optional — the third line on the history chart |
+| intention | String | morning, one line, max 280 |
+| mood | Number | **1–5**, optional — one value per colour-key square |
+| energy | Number | **1–5**, optional |
+| sleepHours | Number | hours, 0–24 in half-hour steps, optional — the third line on the history chart |
 | moment | String | the memorable moment, optional, max 280 |
-| completed | `[ObjectId]` | ref goals — goals ticked during this check-in |
-| morningLoggedAt / eveningLoggedAt | Date | optional |
+| completedGoalIds | `[ObjectId]` | ref goals — goals ticked during this check-in |
+| completed | Boolean | default false — true once the evening flow is finished |
 
 Indexes: **`{ userId: 1, date: 1 } unique`**, `{ userId: 1, date: -1 }`.
 
-Patch with `$set` on explicit paths only — **never** whole-document replacement, so saving one
-half cannot wipe the other.
+Every write is an **upsert against the unique index**, so two submissions on the same day update
+one row rather than racing into two. Patch with `$set` on explicit paths only — never a
+whole-document replacement — so a partial save cannot wipe a field it did not mention. `null` is
+distinct from absent: absent leaves a field alone, `null` clears it. Without that, a one-tap mood
+log would blank the moment you just typed.
+
+Backfill is allowed for **14 days** (`BACKFILL_WINDOW_DAYS`); future dates are rejected in the
+user's own timezone. `completedGoalIds` is applied through `goalService.setGoalCompleted`, never
+re-implemented, so the completion date is stamped once in the user's timezone.
 
 ### learningProjects *(v2)*
 | Field | Type | Notes |
@@ -266,25 +273,45 @@ POST   /habit-logs        { habitId, date, done }    idempotent upsert / delete
 
 ### Check-ins *(v1)*
 ```
-GET    /checkins/:date                   → the day's doc, or an empty shell
-PUT    /checkins/:date/morning           { intention }
-PUT    /checkins/:date/evening           { mood?, energy?, sleep?, moment?, completed? }
-GET    /checkins?month=YYYY-MM           → the month (charts + moments)
-GET    /checkins/moments?month=YYYY-MM   → memorable moments only
+POST   /checkins        { date?, intention?, mood?, energy?, sleepHours?, moment?,
+                          completedGoalIds?, completed? }   upsert; date defaults to today
+GET    /checkins/today                   → today's doc, or { date, exists: false }
+GET    /checkins/:date                   → that day's doc, or an empty shell
+GET    /checkins?month=YYYY-MM           → the month, oldest first (charts + moments)
 ```
+
+One POST serves the whole ritual — the evening sheet's Done, a one-tap mood log, and a backfill
+all take the same path, so there is exactly one place the day could be duplicated and the unique
+index makes sure it isn't. Emits `checkin:changed`.
 
 ### History *(v1)*
 ```
-GET    /history/vitals?month=YYYY-MM     → [{ date, mood, energy, sleep }] for the multicolor chart
-GET    /history/summary?month=YYYY-MM    → checkin count, habit completion %, goals done, moments count
+GET    /history?month=YYYY-MM   → ONE batched read for the whole screen:
+                                   { month, days[], series{habits,sleep,tasks,mood,energy}[],
+                                     heatmap[{date,done,total}], moments[{date,moment}], futureFrom }
+                                   Every series uses null for a day with no row — never zero-filled.
+                                   Relies on goals { userId, completedDate }.
 ```
 
 ### Push *(v1)*
 ```
-POST   /push/subscriptions      { endpoint, keys, userAgent?, timezone? }   (upsert on endpoint)
-DELETE /push/subscriptions      { endpoint }
-POST   /push/test               send a test notification to all of this user's devices
+GET    /push/vapid-public-key   → { publicKey }   UNAUTHENTICATED — public by design
+GET    /push/status             → { subscribed, deviceCount, endpoints[] }
+POST   /push/subscribe          PushSubscription.toJSON() + { userAgent?, timezone? }
+DELETE /push/subscribe          { endpoint }
 ```
+
+**The upsert key is `endpoint`, not `userId`.** A push endpoint is issued to one browser profile on
+one device, so it is already globally unique; a user with a phone and a laptop legitimately owns two
+rows. Keying on the user would silently drop a device every time you subscribed on another one.
+Re-subscribing reassigns `userId`, so a shared device follows whoever subscribed last — otherwise
+the next push to it would reach the wrong person.
+
+The VAPID **public** key is served rather than baked into the web bundle, so regenerating the
+keypair does not require rebuilding the client; a mismatch there produces subscriptions the server
+can never push to. The private key never leaves the API process.
+
+No send endpoint yet — dispatch is the worker's job (Prompt 2.2).
 
 ### v2
 ```
@@ -343,7 +370,7 @@ Server → client (names in `packages/shared/SOCKET_EVENTS`):
 goal:created      goal:updated      goal:deleted      goal:completed
 habit:created     habit:updated     habit:archived
 habitLog:changed   { habitId, date, done }
-checkin:updated    { date, half: 'morning' | 'evening', checkin }
+checkin:changed    { date, checkin }
 project:updated    milestone:updated                    (v2)
 resource:processed { id, processingStatus }              (v2)
 event:updated                                            (v2)
@@ -413,10 +440,16 @@ Server state lives in TanStack Query; ephemeral UI state in `useState`. No globa
 1. App **installed and opened** → only then show the reminder card. Never on first paint, never on
    a cold browser visit.
 2. Tap "Turn on reminders" → `Notification.requestPermission()`.
-3. On grant → `registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(NEXT_PUBLIC_VAPID_PUBLIC_KEY) })`.
-4. `POST /api/push/subscriptions` with `{ endpoint, keys: { p256dh, auth }, userAgent, timezone }`.
+3. On grant → `registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(key) })`, where `key` comes from `GET /push/vapid-public-key`.
+4. `POST /api/push/subscribe` with `{ endpoint, keys: { p256dh, auth }, userAgent, timezone }`.
 5. Server upserts on the unique `endpoint`. One user, many devices.
 6. `pushsubscriptionchange` in the SW → re-subscribe and re-POST.
+
+The client models this as an explicit state machine (`lib/push.ts`): `UNSUPPORTED`,
+`NOT_INSTALLED`, `INSTALLED_NO_PERMISSION`, `PERMISSION_DENIED`, `SUBSCRIBED`, `ERROR`. **The server
+is the authority on `SUBSCRIBED`** — a browser can hold a subscription the server never received, and
+the UI must not claim reminders are on when nothing will ever be sent. Standalone is detected via
+`display-mode` **and** `navigator.standalone`, so the check does not depend on one signal.
 
 ### Dispatch
 Worker → `web-push.sendNotification(sub, payload)`.
@@ -427,7 +460,8 @@ Worker → `web-push.sendNotification(sub, payload)`.
 - SW `notificationclick` → focus an existing client if one exists, else `openWindow` the deep link
   (`/checkin`, `/goals/:id`, `/events`).
 
-`NEXT_PUBLIC_VAPID_PUBLIC_KEY` is the only VAPID value the client ever sees.
+The client only ever sees the VAPID **public** key, and fetches it from the API rather than holding
+it as a build-time constant — so `NEXT_PUBLIC_VAPID_PUBLIC_KEY` is no longer needed in apps/web.
 
 ---
 
@@ -444,7 +478,9 @@ REDIS_URL=
 JWT_ACCESS_SECRET=       JWT_ACCESS_TTL=15m
 JWT_REFRESH_SECRET=      JWT_REFRESH_TTL=30d
 CORS_ORIGIN=http://localhost:3000
-VAPID_PUBLIC_KEY=        VAPID_PRIVATE_KEY=      VAPID_SUBJECT=mailto:you@example.com
+VAPID_PUBLIC_KEY=        # served to the client via GET /push/vapid-public-key
+VAPID_PRIVATE_KEY=       # SERVER ONLY — never shipped, never logged
+VAPID_SUBJECT=mailto:you@example.com
 SENTRY_DSN=              LOG_LEVEL=info
 ```
 
@@ -463,12 +499,16 @@ LLM_MODEL=               # v2
 ```
 NEXT_PUBLIC_API_URL=http://localhost:4000
 NEXT_PUBLIC_SOCKET_URL=http://localhost:4000
-NEXT_PUBLIC_VAPID_PUBLIC_KEY=
 NEXT_PUBLIC_SENTRY_DSN=
 ```
 
-VAPID keys: `npx web-push generate-vapid-keys`. JWT secrets: `openssl rand -base64 48`. Never
-commit a real `.env`; never expose the VAPID private key or the LLM key to the client.
+No VAPID key here: the client fetches the public one from `GET /push/vapid-public-key` at subscribe
+time, so the two can never drift out of sync.
+
+VAPID keys: `npx web-push generate-vapid-keys`, or `webpush.generateVAPIDKeys()`. JWT secrets:
+`openssl rand -base64 48`. **`VAPID_PRIVATE_KEY` is server-only and must never reach the client** —
+it is what authenticates this server to the push service; anyone holding it can send notifications to
+your users. Never commit a real `.env`.
 
 ---
 

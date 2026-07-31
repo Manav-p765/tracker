@@ -17,8 +17,8 @@ import { HORIZONS, HORIZON_TAG, pastelOf, pastelVar, type Horizon } from "./hori
  */
 export function HorizonTabs({ active }: { active: Horizon }) {
   return (
-    <nav aria-label="Horizon" className="-mx-dot overflow-x-auto px-dot">
-      <ul className="flex min-w-max gap-dot">
+    <nav aria-label="Horizon" className="-mx-unit overflow-x-auto px-unit">
+      <ul className="flex min-w-max gap-unit">
         {HORIZONS.map((horizon) => {
           const selected = horizon === active;
           return (

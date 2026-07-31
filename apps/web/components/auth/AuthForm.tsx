@@ -81,14 +81,14 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   }
 
   return (
-    <div className="mx-auto max-w-content px-dot py-dot-3">
-      <header className="space-y-dot">
+    <div className="mx-auto max-w-content px-unit py-unit-3">
+      <header className="space-y-unit">
         <FileTag>{isRegister ? "NEW FILE" : "SIGN IN"}</FileTag>
         <SerifHeading level={1}>{isRegister ? "Start the journal" : "Open the journal"}</SerifHeading>
         <HairlineRule />
       </header>
 
-      <form onSubmit={onSubmit} className="mt-dot-2 space-y-dot-2" noValidate>
+      <form onSubmit={onSubmit} className="mt-unit-2 space-y-unit-2" noValidate>
         {isRegister ? (
           <TextField
             label="Name"
@@ -134,7 +134,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         </Button>
       </form>
 
-      <HairlineRule className="my-dot-2" />
+      <HairlineRule className="my-unit-2" />
 
       <p className="text-[0.9375rem] text-ink-muted">
         {isRegister ? "Already have an account? " : "No account yet? "}

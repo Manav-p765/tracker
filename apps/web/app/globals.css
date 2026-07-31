@@ -9,6 +9,10 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /**
+   * Plain warm paper. The dot-grid substrate was dropped — no radial-dot
+   * background anywhere, in either theme (DESIGN.md §4).
+   */
   body {
     background-color: var(--paper);
     color: var(--ink);
@@ -39,26 +43,18 @@
   }
 }
 
-@layer components {
-  /**
-   * The dot-grid paper substrate (DESIGN.md §4). On the page background, and on
-   * any region that should read as bare paper. Oat cards sit opaquely on top —
-   * the dots do not show through them.
-   */
-  .dot-grid {
-    background-color: var(--paper);
-    background-image: radial-gradient(var(--dot) var(--dot-size), transparent 0);
-    background-size: var(--dot-gap) var(--dot-gap);
-    /* Anchor the pattern to the top-left so content lands on the grid. */
-    background-position: 0 0;
-  }
-}
-
 @layer utilities {
   /* Pixel art must not be smoothed (DESIGN.md §7). */
   .pixelated {
     shape-rendering: crispEdges;
     image-rendering: pixelated;
+  }
+
+  /**
+   * Focus ring drawn against the dark hero card, where ink would disappear.
+   */
+  .focus-on-dark:focus-visible {
+    outline-color: var(--dark-ink);
   }
 }
 
