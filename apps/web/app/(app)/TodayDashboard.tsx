@@ -7,7 +7,8 @@ import { HabitsCard } from "@/components/bento/HabitsCard";
 import { HeroCard } from "@/components/bento/HeroCard";
 import { StreakCard } from "@/components/bento/StreakCard";
 import { MoodCard } from "@/components/bento/MoodCard";
-import { EventCard, ProjectCard } from "@/components/bento/StubCards";
+import { EventCard } from "@/components/bento/StubCards";
+import { ProjectCard } from "@/components/bento/ProjectCard";
 import { VitalsCard } from "@/components/bento/VitalsCard";
 import { SerifHeading } from "@/components/paper/SerifHeading";
 

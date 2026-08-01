@@ -54,6 +54,8 @@ export const RESOURCE_SOURCES = [
   "vault-paste",
   "manual-link",
   "manual-note",
+  /** Attached to a learning project rather than pasted into the Vault. */
+  "project",
 ] as const;
 export type ResourceSource = (typeof RESOURCE_SOURCES)[number];
 

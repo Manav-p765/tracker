@@ -199,8 +199,6 @@ export interface LearningProject extends Timestamped, UserOwned {
   _id: Id;
   title: string;
   description?: string;
-  /** Manual override. null → derive from milestones. */
-  progress?: number | null;
   status: ProjectStatus;
   /** Folder-tab identity colour, assigned round-robin at creation. */
   pastel: Pastel;
@@ -208,12 +206,39 @@ export interface LearningProject extends Timestamped, UserOwned {
   archivedAt?: IsoInstant | null;
 }
 
+/**
+ * Progress, computed on read — never stored (SCOPE.md §4.3).
+ *
+ * Same discipline as the goal rollup and derived overdue: a stored percentage is a
+ * number that silently goes stale the moment a milestone moves. `percent` is 0 with
+ * no milestones, never NaN; `hasMilestones` is what the UI uses to say "no
+ * milestones yet" instead of an honest-but-useless 0%.
+ */
+export interface ProjectProgress {
+  done: number;
+  total: number;
+  percent: number;
+  hasMilestones: boolean;
+}
+
+export interface LearningProjectWithProgress extends LearningProject {
+  progress: ProjectProgress;
+}
+
 export interface ProjectMilestone extends Timestamped, UserOwned {
   _id: Id;
   projectId: Id;
   title: string;
+  /** Derived from `completedDate` — the date is kept because when matters too. */
+  done: boolean;
   completedDate?: DayKey | null;
   sortOrder: number;
+}
+
+/** GET /projects/:id — the folder and everything filed in it. */
+export interface ProjectDetail extends LearningProjectWithProgress {
+  milestones: ProjectMilestone[];
+  resources: Resource[];
 }
 
 // ---------------------------------------------------------------------------

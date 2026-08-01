@@ -15,7 +15,7 @@
 import { PushSubscription } from "@tracker/db";
 import webpush, { WebPushError } from "web-push";
 
-import { logger } from "../logger.js";
+import { logger } from "./logger.js";
 
 export interface PushPayload {
   title: string;

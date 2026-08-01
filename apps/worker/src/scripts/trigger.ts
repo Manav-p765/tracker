@@ -16,8 +16,10 @@ import { PushSubscription, User } from "@tracker/db";
 import { notificationTag, type ReminderKind } from "@tracker/shared";
 import mongoose from "mongoose";
 
+import { configureWebPush, sendToUser, setReminderLogger } from "@tracker/reminders";
+
 import { loadEnv } from "../env.js";
-import { configureWebPush, sendToUser } from "../reminders/sender.js";
+import { logger } from "../logger.js";
 
 const COPY: Record<string, { title: string; body: string; url: string }> = {
   checkin: {
@@ -50,6 +52,7 @@ async function main(): Promise<void> {
   }
 
   const env = loadEnv();
+  setReminderLogger(logger);
   configureWebPush(env);
   await mongoose.connect(env.MONGODB_URI);
 

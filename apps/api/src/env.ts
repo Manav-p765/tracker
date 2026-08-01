@@ -34,6 +34,8 @@ const envSchema = z.object({
    * optional here rather than blocking the API from booting in Phase 0.
    */
   REDIS_URL: z.string().optional(),
+  /** Shared secret for POST /internal/cron/dispatch-reminders. */
+  CRON_SECRET: z.string().optional(),
   VAPID_PUBLIC_KEY: z.string().optional(),
   VAPID_PRIVATE_KEY: z.string().optional(),
   VAPID_SUBJECT: z.string().optional(),

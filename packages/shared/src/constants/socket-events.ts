@@ -13,8 +13,7 @@ import type {
   Habit,
   Id,
   ImportantEvent,
-  LearningProject,
-  ProjectMilestone,
+  LearningProjectWithProgress,
 } from "../domain/entities.js";
 import type { ProcessingStatus } from "../domain/enums.js";
 import type { DayKey } from "../date/day-key.js";
@@ -33,8 +32,9 @@ export const SOCKET_EVENTS = {
   CHECKIN_CHANGED: "checkin:changed",
 
   // v2
-  PROJECT_UPDATED: "project:updated",
-  MILESTONE_UPDATED: "milestone:updated",
+  PROJECT_CHANGED: "project:changed",
+  MILESTONE_CHANGED: "milestone:changed",
+  RESOURCE_CHANGED: "resource:changed",
   RESOURCE_PROCESSED: "resource:processed",
   EVENT_UPDATED: "event:updated",
 
@@ -50,6 +50,13 @@ export interface HabitLogChangedPayload {
   habitId: Id;
   date: DayKey;
   done: boolean;
+}
+
+/** A project write: the folder, or its deletion. */
+export interface ProjectChangedPayload {
+  projectId: Id;
+  /** null when the project was deleted. */
+  project: LearningProjectWithProgress | null;
 }
 
 export interface ResourceProcessedPayload {
@@ -71,8 +78,10 @@ export interface ServerToClientEvents {
 
   "checkin:changed": (payload: CheckinChangedPayload) => void;
 
-  "project:updated": (project: LearningProject) => void;
-  "milestone:updated": (milestone: ProjectMilestone) => void;
+  /** The whole project with its derived progress, so the cache can patch in place. */
+  "project:changed": (payload: ProjectChangedPayload) => void;
+  "milestone:changed": (payload: { projectId: Id }) => void;
+  "resource:changed": (payload: { projectId: Id | null }) => void;
   "resource:processed": (payload: ResourceProcessedPayload) => void;
   "event:updated": (event: ImportantEvent) => void;
 

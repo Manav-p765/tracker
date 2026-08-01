@@ -4,33 +4,25 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
     "trigger": "tsx src/scripts/trigger.ts",
     "clean": "rimraf dist .turbo *.tsbuildinfo"
   },
   "dependencies": {
-    "@sentry/node": "^8.55.0",
     "@tracker/db": "workspace:*",
+    "@tracker/reminders": "workspace:*",
     "@tracker/shared": "workspace:*",
-    "bullmq": "^5.34.10",
     "dotenv": "^16.4.7",
-    "ioredis": "^5.4.2",
     "mongoose": "^8.9.5",
-    "web-push": "^3.6.7",
     "winston": "^3.17.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/node": "^22.10.7",
-    "@types/web-push": "^3.6.4",
-    "mongodb-memory-server": "^10.1.3",
     "rimraf": "^6.0.1",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3",
-    "vitest": "^2.1.8"
-  }
+    "typescript": "^5.7.3"
+  },
+  "description": "Manual reminder trigger CLI. The scheduled dispatch is cron-driven via the API — see ARCHITECTURE.md §5."
 }

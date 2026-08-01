@@ -33,6 +33,23 @@ export class ApiError extends Error {
   get isAuthFailure(): boolean {
     return this.status === 401;
   }
+
+  /**
+   * The message worth showing a person.
+   *
+   * A validation failure's top-level message is the generic "Invalid request body";
+   * the useful sentence — "that doesn't look like a link" — is the first field
+   * error underneath. Surfacing that is the difference between a form that helps
+   * and one that just says no.
+   */
+  get friendlyMessage(): string {
+    const details = this.details;
+    if (Array.isArray(details)) {
+      const first = details[0] as { message?: unknown } | undefined;
+      if (first !== undefined && typeof first.message === "string") return first.message;
+    }
+    return this.message;
+  }
 }
 
 // ---------------------------------------------------------------------------

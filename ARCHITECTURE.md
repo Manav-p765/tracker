@@ -35,10 +35,11 @@ tracker/
 ├── apps/
 │   ├── web/                  # Next.js App Router PWA
 │   ├── api/                  # Express + Socket.IO
-│   └── worker/               # BullMQ worker process
+│   └── worker/               # manual reminder trigger CLI (no resident process)
 ├── packages/
 │   ├── shared/               # TS types, Zod schemas, day-key utils, constants
-│   └── db/                   # Mongoose models — the schema, in exactly one place
+│   ├── db/                   # Mongoose models — the schema, in exactly one place
+│   └── reminders/            # scanners + web-push delivery + cron dispatch
 ├── SCOPE.md  ARCHITECTURE.md  DESIGN.md  BUILD_PROMPTS.md
 ├── pnpm-workspace.yaml
 ├── turbo.json
@@ -51,12 +52,12 @@ tracker/
 - Zod schemas for every API payload
 - `SOCKET_EVENTS` and `QUEUE_NAMES` constants (no stringly-typed names)
 - day-key helpers: `toDayKey(date, tz)`, `parseDayKey`, `monthRange(yyyyMm)`, `addDays`
-- shared derivation logic used by both api and worker: goal status, rollup math, streaks
+- shared derivation logic used by every host: goal status, rollup math, streaks
 
-`packages/db` holds the Mongoose models. It exists because **both** `api` and `worker` need the
-schemas, and the rule below forbids the worker reaching into the API's source. It depends on
-`shared` (for the enums the schemas validate against) and is never imported by `web` — Mongoose has
-no business in a browser bundle.
+`packages/db` holds the Mongoose models, and `packages/reminders` the reminder domain. Both exist
+for the same reason: two hosts need them (the API's cron dispatch and the CLI), and the rule below
+forbids one app reaching into another's source. Both depend on `shared`, and neither is imported by
+`web` — Mongoose has no business in a browser bundle.
 
 Rule: **no app imports from another app.** `web` never imports from `api`; `worker` never imports
 from `api`. Anything two apps need goes in a package.
@@ -172,13 +173,23 @@ re-implemented, so the completion date is stamped once in the user's timezone.
 | userId | ObjectId | required |
 | title | String | required |
 | description | String | optional |
-| progress | Number | 0–100; manual override, null = derive from milestones |
+
 | status | String enum | `active \| paused \| done`, default `active` |
 | pastel | String enum | folder-tab identity color, assigned round-robin at creation |
 | targetDate | String | `"YYYY-MM-DD"`, optional |
 | archivedAt | Date | optional |
 
 Index: `{ userId: 1, status: 1 }`.
+
+**`progress` is not a column.** It is derived on every read as `done / total` over the project's
+milestones — same discipline as the goal rollup and derived overdue. Zero milestones is an honest
+`{ done: 0, total: 0, percent: 0, hasMilestones: false }`, never NaN; `hasMilestones` is what lets
+the UI say "no milestones yet" rather than a misleading 0%.
+
+**Deleting a project cascades**: its milestones and its project-scoped resources go with it. Unlike
+a goal — whose children are goals in their own right and are only detached — a milestone has no
+meaning without its project, and a resource attached to a deleted project would be invisible in
+every screen. Loose Vault resources (`projectId: null`) are untouched.
 
 ### projectMilestones *(v2)*
 | Field | Type | Notes |
@@ -322,10 +333,11 @@ No send endpoint yet — dispatch is the worker's job (Prompt 2.2).
 
 ### v2
 ```
-GET|POST         /projects              PATCH|DELETE /projects/:id
-GET              /projects/:id          → project + milestones + resources + progressPercent
-GET|POST         /projects/:id/milestones
-PATCH|DELETE     /milestones/:id        POST /milestones/:id/complete
+GET|POST         /projects?status=      PATCH|DELETE /projects/:id     ← LIVE (3.1)
+GET              /projects/:id          → project + DERIVED progress + milestones + resources
+POST             /projects/:id/milestones      PUT /projects/:id/milestones/order
+POST             /projects/:id/resources
+PATCH|DELETE     /milestones/:id        PATCH|DELETE /resources/:id
 POST   /vault                           { source, url?, rawText? } → 202 + pending resource
 POST   /vault/:id/reprocess
 GET    /resources?q=&tag=&projectId=&source=&page=
@@ -345,10 +357,14 @@ the error envelope with only 5xx reported to Sentry, and `GET /healthz`.
 Redis is shared by `api` (producer) and `worker` (consumer). Queue names live in
 `packages/shared`.
 
-**One repeatable sweep, not a cron per user.** A single job on the `reminders` queue runs every
-`SCAN_INTERVAL_MINUTES` (default 5) and asks each scanner what is due *right now, in each user's own
-zone*. Per-user schedules would mean N crons to create, update and tear down every time a setting
-changed; the sweep has no state to drift.
+**Cron-triggered dispatch, not an always-on loop.** `POST /api/internal/cron/dispatch-reminders`
+does one tick: run every scanner for the current window in each user's own zone, enqueue the due
+reminders under deterministic ids, drain the batch inline, return a summary. An external scheduler
+calls it every 15 minutes. There is no resident worker process, which is what makes this deployable
+on free hosting.
+
+Per-user schedules would still be wrong — N crons to create, update and tear down every time a
+setting changed. One sweep over everyone has no state to drift.
 
 | Scanner | Local slot | Window | Fires when | jobId |
 |---|---|---|---|---|
@@ -360,7 +376,7 @@ changed; the sweep has no state to drift.
 
 | Queue | Job | Schedule | Does |
 |---|---|---|---|
-| `reminders` | `scan-checkin-reminders` | repeatable, every 5 min | Runs **all** scanners; enqueues `send-push` per hit |
+| — | *(the sweep)* | **external cron, every 15 min** | `POST /api/internal/cron/dispatch-reminders` runs all scanners and drains the batch inline |
 | `push` | `send-push` | on demand | `web-push` to every subscription of the user; prunes 404/410 |
 | `maintenance` | `roll-recurring-events` *(v2)* | repeatable, daily 00:30 UTC | Advances past-dated recurring events to their next occurrence |
 | `vault` *(v2)* | `process-resource` | on demand | Best-effort URL fetch → LLM extraction → fills `summary`, `links`, `tags` → `processingStatus` |
@@ -368,6 +384,36 @@ changed; the sweep has no state to drift.
 Every scanner is a **pure read that returns jobs** — it never touches Redis. That is what makes the
 timezone and idempotency rules testable without any queue infrastructure, which matters because they
 are the two things most likely to be wrong.
+
+### Where the cron is defined
+
+| Piece | Location | Notes |
+|---|---|---|
+| Schedule | `apps/web/vercel.json` → `crons[]`, `*/15 * * * *` | Vercel Cron only calls paths on its own deployment |
+| Vercel entry point | `apps/web/app/api/cron/dispatch-reminders/route.ts` | Verifies `Authorization: Bearer $CRON_SECRET`, then forwards |
+| The actual work | `POST /api/internal/cron/dispatch-reminders` on the API | Same secret; scans, enqueues, drains, returns the summary |
+
+Two hops because web (Vercel) and API (Render) are separate origins and only the API holds Redis and
+the VAPID private key. The forwarder adds no correctness burden — if it retries or double-fires, the
+deterministic job ids downstream absorb it.
+
+Response: `{ scanned, enqueued, deduped, sent, failed, pruned, truncated }`.
+
+### Why the queue survives "just send it in the request"
+
+Cron is **at-least-once**. Vercel can fire twice, a retry can overlap a slow run, and the endpoint
+can be curled by hand. The deterministic job id makes all three harmless: the second `add` for
+`checkin-reminder:{user}:{day}` is dropped by the queue rather than becoming a second notification,
+and the drain takes a per-job lock so only one invocation ever delivers a given job.
+
+**Bounded work.** A dispatch processes at most `DEFAULT_MAX_JOBS` (200) and returns `truncated: true`
+if it stopped early. The next tick continues, because nothing is per-invocation — the same scan
+produces the same ids and the already-sent ones dedupe. A function that runs out of time mid-batch
+is a slower batch, not a lost one.
+
+**No Redis means no dispatch.** The endpoint answers 503 rather than sending without dedupe; a cron
+that quietly lost its idempotency would double-notify at the exact moment nobody is watching. It
+fails fast (bounded connect timeout) instead of hanging until the platform kills the invocation.
 
 **Midnight wrap.** A reminder's `day` is the day the *slot* belongs to, not the day the scan ran. A
 23:58 reminder swept at 00:01 is still yesterday's — otherwise the jobId would change at midnight and
@@ -511,6 +557,10 @@ VAPID_PUBLIC_KEY=        # served to the client via GET /push/vapid-public-key
 VAPID_PRIVATE_KEY=       # SERVER ONLY — never shipped, never logged
 VAPID_SUBJECT=mailto:you@example.com
 SENTRY_DSN=              LOG_LEVEL=info
+
+# Shared secret for POST /internal/cron/dispatch-reminders. Machine-to-machine
+# auth for the reminder sweep — must match the value set on the web app.
+CRON_SECRET=
 ```
 
 ### apps/worker
@@ -529,6 +579,10 @@ LLM_MODEL=               # v2
 NEXT_PUBLIC_API_URL=http://localhost:4000
 NEXT_PUBLIC_SOCKET_URL=http://localhost:4000
 NEXT_PUBLIC_SENTRY_DSN=
+
+# Vercel Cron (server-side only, NOT NEXT_PUBLIC — these must never reach the browser)
+CRON_SECRET=                     # same value as the API's
+REMINDER_DISPATCH_URL=https://your-api.example.com/api/internal/cron/dispatch-reminders
 ```
 
 No VAPID key here: the client fetches the public one from `GET /push/vapid-public-key` at subscribe

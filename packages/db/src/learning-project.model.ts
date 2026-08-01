@@ -7,9 +7,9 @@ import { optionalDayKey, userIdField } from "./shared-fields.js";
  * learningProjects and projectMilestones (ARCHITECTURE.md §3) — v2, built now so
  * the schema is complete and the indexes exist from the first deploy.
  *
- * `progress` is a MANUAL OVERRIDE. null means "derive from milestones"
- * (done / total), which is how most projects work. Same discipline as the goal
- * rollup: derived on read, never stored as truth.
+ * `progress` is NOT a column. It is derived from the milestones on every read
+ * (done / total) — the same discipline as the goal rollup and derived overdue. A
+ * stored percentage is a number that goes stale the moment a milestone moves.
  *
  * `pastel` is the folder-tab identity colour, assigned round-robin at creation so
  * it stays stable for the life of the project.
@@ -20,7 +20,6 @@ export interface LearningProjectDoc {
   userId: Types.ObjectId;
   title: string;
   description?: string;
-  progress?: number | null;
   status: ProjectStatus;
   pastel: Pastel;
   targetDate?: string;
@@ -34,7 +33,6 @@ const learningProjectSchema = new Schema<LearningProjectDoc>(
     userId: userIdField,
     title: { type: String, required: true, trim: true, maxlength: 200 },
     description: { type: String, trim: true },
-    progress: { type: Number, min: 0, max: 100, default: null },
     status: { type: String, enum: PROJECT_STATUSES, required: true, default: "active" },
     pastel: { type: String, enum: PASTELS, required: true, default: "sage" },
     targetDate: optionalDayKey,

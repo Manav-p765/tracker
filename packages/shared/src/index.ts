@@ -18,3 +18,4 @@ export * from "./schemas/goal.js";
 export * from "./schemas/habit.js";
 export * from "./schemas/checkin.js";
 export * from "./schemas/push.js";
+export * from "./schemas/project.js";
